@@ -1,7 +1,7 @@
 # Configuration
 
-pg_semantic_cache provides flexible configuration options for vector
-dimensions, index types, and cache behavior.
+This guide describes how to configure pg_semantic_cache for your use case,
+including vector dimensions, index types, and cache behavior.
 
 !!! tip "Start Simple"
 
