@@ -4,126 +4,68 @@ site_author: pgEdge
 site_url: https://docs.pgedge.com/pg_semantic_cache
 
 repo_name: pgEdge/pg_semantic_cache
-repo_url: https://github.com/pgedge/pg_semantic_cache
+repo_url: https://github.com/pgEdge/pg_semantic_cache
 edit_uri: edit/main/docs/
 
-copyright: Copyright &copy; 2024 pgEdge
+copyright: Copyright &copy; 2025 - 2026 pgEdge, Inc
 
 theme:
   name: material
+  custom_dir: docs/overrides
+  favicon: img/favicon.ico
+
+  logo_dark_mode: 'img/logo-dark.png'
+  logo_light_mode: 'img/logo-light.png'
+
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.prune
+    - navigation.top
+    - toc.follow
+
   palette:
-    # Light mode
     - media: "(prefers-color-scheme: light)"
       scheme: default
-      primary: cyan
+      primary: white
       accent: cyan
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
-    # Dark mode
+
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
-      primary: cyan
+      primary: black
       accent: cyan
       toggle:
         icon: material/brightness-4
-        name: Switch to light mode
-  font:
-    text: Roboto
-    code: Roboto Mono
-  logo: img/logo.png
-  favicon: img/favicon.ico
-  features:
-    - navigation.tabs
-    - navigation.tabs.sticky
-    - navigation.sections
-    - navigation.expand
-    - navigation.top
-    - navigation.tracking
-    - navigation.indexes
-    - search.suggest
-    - search.highlight
-    - search.share
-    - content.code.copy
-    - content.code.annotate
-    - content.tabs.link
-
-plugins:
-  - search:
-      lang: en
-      separator: '[\s\-,:!=\[\]()"/]+|(?!\b)(?=[A-Z][a-z])|\.(?!\d)|&[lg]t;'
-  - git-revision-date-localized:
-      enable_creation_date: true
-      type: timeago
-  - minify:
-      minify_html: true
-      minify_js: true
-      minify_css: true
-      htmlmin_opts:
-        remove_comments: true
-      cache_safe: true
-
-markdown_extensions:
-  # Python Markdown
-  - abbr
-  - admonition
-  - attr_list
-  - def_list
-  - footnotes
-  - md_in_html
-  - tables
-  - toc:
-      permalink: true
-      toc_depth: 3
-
-  # Python Markdown Extensions
-  - pymdownx.arithmatex:
-      generic: true
-  - pymdownx.betterem:
-      smart_enable: all
-  - pymdownx.caret
-  - pymdownx.details
-  - pymdownx.emoji:
-      emoji_index: !!python/name:material.extensions.emoji.twemoji
-      emoji_generator: !!python/name:material.extensions.emoji.to_svg
-  - pymdownx.highlight:
-      anchor_linenums: true
-      line_spans: __span
-      pygments_lang_class: true
-  - pymdownx.inlinehilite
-  - pymdownx.keys
-  - pymdownx.mark
-  - pymdownx.smartsymbols
-  - pymdownx.snippets:
-      auto_append:
-        - includes/abbreviations.md
-  - pymdownx.superfences:
-      custom_fences:
-        - name: mermaid
-          class: mermaid
-          format: !!python/name:pymdownx.superfences.fence_code_format
-  - pymdownx.tabbed:
-      alternate_style: true
-  - pymdownx.tasklist:
-      custom_checkbox: true
-  - pymdownx.tilde
+        name: Switch to system preference
 
 extra:
-  version:
-    provider: mike
-  social:
-    - icon: fontawesome/brands/github
-      link: https://github.com/pgedge/pg_semantic_cache
-    - icon: fontawesome/brands/twitter
-      link: https://twitter.com/pgedge
-    - icon: fontawesome/brands/linkedin
-      link: https://linkedin.com/company/pgedge
+  generator: false
 
 extra_css:
   - stylesheets/extra.css
 
 extra_javascript:
-  - javascripts/extra.js
+  - https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js
+
+plugins:
+  - search
+  - macros:
+      j2_variable_start_string: "<<"
+      j2_variable_end_string: ">>"
+      j2_comment_start_string: "<#"
+      j2_comment_end_string: "#>"
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
 
 nav:
   - Home: index.md
