@@ -424,4 +424,4 @@ VACUUM semantic_cache.cache_access_log;
 
 ---
 
-For more information, see the main [README](../README.md) and [CHANGELOG](../CHANGELOG.md).
+For more information, see the main [README](https://github.com/pgEdge/pg_semantic_cache#readme) and [CHANGELOG](https://github.com/pgEdge/pg_semantic_cache/blob/main/CHANGELOG.md).
