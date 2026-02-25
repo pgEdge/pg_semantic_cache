@@ -1,7 +1,7 @@
 # Security Audit Report - pg_semantic_cache Extension
 
 **Date**: 2024-12-18
-**Version**: 0.1.0-beta3
+**Version**: 0.1.0-beta4
 **Auditor**: Security Review Process
 
 ---

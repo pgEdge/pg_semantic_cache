@@ -458,5 +458,5 @@ SELECT semantic_cache.cache_query(
 
 ## Still Have Questions?
 
-- **GitHub Issues**: [Report bugs or ask questions](https://github.com/pgedge/pg_semantic_cache/issues)
-- **Discussions**: [Community discussions](https://github.com/pgedge/pg_semantic_cache/discussions)
+- **GitHub Issues**: [Report bugs or ask questions](https://github.com/pgEdge/pg_semantic_cache/issues)
+- **Discussions**: [Community discussions](https://github.com/pgEdge/pg_semantic_cache/discussions)

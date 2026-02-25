@@ -428,7 +428,7 @@ WHERE expires_at <= NOW();
 
 ## Support
 
-- **GitHub**: [https://github.com/pgedge/pg_semantic_cache](https://github.com/pgedge/pg_semantic_cache)
+- **GitHub**: [https://github.com/pgEdge/pg_semantic_cache](https://github.com/pgEdge/pg_semantic_cache)
 - **Documentation**: This guide + `README.md`
 - **Examples**: `examples/` directory
 - **Tests**: `test/` directory

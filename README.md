@@ -106,7 +106,7 @@ brew install postgresql@16
 **Step 2: Build & Install Extension**
 
 ```bash
-git clone https://github.com/pgedge/pg_semantic_cache.git
+git clone https://github.com/pgEdge/pg_semantic_cache.git
 cd pg_semantic_cache
 
 make clean && make

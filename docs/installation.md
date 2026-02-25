@@ -67,7 +67,7 @@ This guide covers installing pg_semantic_cache from source on various platforms.
 
 ```bash
 # Clone the repository
-git clone https://github.com/pgedge/pg_semantic_cache.git
+git clone https://github.com/pgEdge/pg_semantic_cache.git
 cd pg_semantic_cache
 
 # Build
@@ -184,7 +184,7 @@ Expected output:
       extname       | extversion
 --------------------+------------
  vector             | 0.7.0
- pg_semantic_cache  | 0.1.0-beta3
+ pg_semantic_cache  | 0.1.0-beta4
 ```
 
 ### Verify Schema Creation
