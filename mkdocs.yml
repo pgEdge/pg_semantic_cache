@@ -69,9 +69,11 @@ markdown_extensions:
 
 nav:
   - Home: index.md
+  - Using Semantic Caching: architecture.md
   - Getting Started:
-      - Installation: installation.md
-      - Configuration: configuration.md
+      - Quick Start Guide: quick_start.md
+      - Building from Source: installation.md
+      - Configuring pg_semantic_cache: configuration.md
   - Usage:
       - Use Cases: use_cases.md
       - Monitoring: monitoring.md
@@ -102,4 +104,5 @@ nav:
               - get_cost_savings: functions/get_cost_savings.md
           - Utility:
               - init_schema: functions/init_schema.md
+  - Troubleshooting: troubleshooting.md
   - FAQ: FAQ.md
