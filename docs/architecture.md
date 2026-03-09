@@ -31,22 +31,10 @@ graph LR
 5. Automatic maintenance evicts expired entries based on TTL and configured
    policies.
 
-## Performance
-
-- Lookup time is < 5ms for most queries with IVFFlat index.
-- Scalability handles 100K+ cached entries efficiently.
-- Throughput reaches thousands of cache lookups per second.
-- Storage provides configurable cache size limits with automatic eviction.
-
-!!! tip "Pro Tip"
-
-    Start with the default IVFFlat index and 1536 dimensions (OpenAI
-    ada-002). You can always reconfigure your cache later with the
-    `set_vector_dimension()` and `rebuild_index()` functions.
 
 ## Getting Help
 
-- Browse the sections in the navigation menu for documentation.
+- Browse the documentation.
 - Report issues at
   [GitHub Issues](https://github.com/pgedge/pg_semantic_cache/issues).
 - See [Use Cases](use_cases.md) for practical implementation examples.

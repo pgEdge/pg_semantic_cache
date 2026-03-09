@@ -1,10 +1,15 @@
 # Integration Examples
 
-Refer to the following integration examples when configuring pg_semantic_cache.
+This page provides integration examples for using pg_semantic_cache with
+popular programming languages and embedding providers.
 
-### Python with OpenAI
+## Python with OpenAI
 
-Complete example integrating semantic cache with OpenAI embeddings:
+The following example demonstrates how to integrate the semantic cache with
+OpenAI embeddings using Python and the psycopg2 library.
+
+In the following example, the `SemanticCache` class wraps the cache functions
+and handles embedding generation through the OpenAI API.
 
 ```python
 import psycopg2
@@ -92,14 +97,26 @@ def get_revenue_data(query: str) -> Dict:
 
 # Example queries
 data1 = get_revenue_data("What was Q4 2024 revenue?")
-data2 = get_revenue_data("Show me revenue for last quarter")  # Will hit cache!
-data3 = get_revenue_data("Q4 sales figures?")  # Will also hit cache!
+data2 = get_revenue_data("Show me revenue for last quarter")
+data3 = get_revenue_data("Q4 sales figures?")
 
 # View statistics
 print(cache.stats())
 ```
 
-### Node.js with OpenAI
+The preceding example demonstrates three key operations:
+
+- The cache initialization with database connection and API credentials.
+- The automatic fallback from cache lookup to computation when needed.
+- The statistical monitoring to track cache performance over time.
+
+## Node.js with OpenAI
+
+The following example shows how to use the semantic cache with Node.js and
+the OpenAI API through an asynchronous interface.
+
+In the following example, the `SemanticCache` class uses async/await patterns
+to handle database operations and embedding generation.
 
 ```javascript
 const { Client } = require('pg');
@@ -170,9 +187,11 @@ async function getRevenueData(query) {
 }
 ```
 
-### More Examples
+## Additional Resources
 
-For additional integration patterns and use cases, see:
-- `examples/usage_examples.sql` - Comprehensive SQL examples
-- `test/benchmark.sql` - Performance testing examples
+The repository includes additional integration examples and test files.
 
+For more comprehensive examples, refer to the following files:
+
+- The `examples/usage_examples.sql` file contains comprehensive SQL examples.
+- The `test/benchmark.sql` file provides performance testing examples.

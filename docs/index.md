@@ -57,4 +57,16 @@ For an LLM application making 10,000 queries per day:
 - Comprehensive monitoring provides built-in statistics, views, and health
   metrics.
 
+### Cross-Platform Support
+
+The extension is fully compatible with all PostgreSQL-supported platforms.
+
+Fully compatible with all PostgreSQL-supported platforms:
+
+| Platform | Status | Notes |
+|----------|--------|-------|
+| Linux | Supported | Ubuntu, Debian, RHEL, Rocky, Fedora, etc. |
+| macOS | Supported | Intel & Apple Silicon |
+| Windows | Supported | Via MinGW or MSVC |
+| BSD | Supported | FreeBSD, OpenBSD |
 
