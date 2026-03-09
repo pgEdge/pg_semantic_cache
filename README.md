@@ -1,6 +1,4 @@
-<div align="center">
-
-# 🗄️ pg_semantic_cache
+# pg_semantic_cache
 
 ### Intelligent Query Result Caching for PostgreSQL
 
@@ -10,27 +8,27 @@
 [![License](https://img.shields.io/badge/License-PostgreSQL-blue.svg)](LICENSE)
 [![pgvector](https://img.shields.io/badge/Requires-pgvector-orange.svg)](https://github.com/pgvector/pgvector)
 
-[Quick Start](#-quick-start) •
-[Features](#-key-features) •
-[API Reference](#-api-reference) •
-[Examples](#-integration-examples) •
-[Performance](#-performance)
+[Quick Start](#quick-start) •
+[Features](#key-features) •
+[API Reference](#api-reference) •
+[Examples](#integration-examples) •
+[Performance](#performance)
 
 </div>
 
 ---
 
-## 🎯 Overview
+## Overview
 
 `pg_semantic_cache` enables **semantic query result caching** in PostgreSQL. Unlike traditional caching that requires exact query matches, this extension uses vector embeddings to find and retrieve cached results for semantically similar queries.
 
 ### Perfect For
 
-- 🤖 **AI/LLM Applications** - Cache expensive LLM responses for similar questions
-- 🔍 **RAG Pipelines** - Speed up retrieval-augmented generation workflows
-- 📊 **Analytics Dashboards** - Reuse results for similar analytical queries
-- 💬 **Chatbots** - Reduce latency by caching semantically similar conversations
-- 🔎 **Search Systems** - Handle query variations without re-execution
+- **AI/LLM Applications** - Cache expensive LLM responses for similar questions
+- **RAG Pipelines** - Speed up retrieval-augmented generation workflows
+- **Analytics Dashboards** - Reuse results for similar analytical queries
+- **Chatbots** - Reduce latency by caching semantically similar conversations
+- **Search Systems** - Handle query variations without re-execution
 
 ### How It Works
 
@@ -43,40 +41,42 @@
 │ Similar cached query found:                                 │
 │ "Show me revenue for last quarter" (similarity: 97%)        │
 │ ↓ Return cached result (2ms instead of 500ms)               │
-│ ✅ Cache HIT - 250x faster!                                 │
+│ Cache HIT - 250x faster!                                    │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## ✨ Key Features
+## Key Features
 
-### 🧠 Semantic Intelligence
+`pg_semantic_cache` provides a comprehensive set of capabilities designed for production use.
+
+### Semantic Intelligence
 - **Vector-based matching** using pgvector for similarity search
 - **Configurable similarity thresholds** (default: 95%)
 - **Cosine distance** calculations for accurate semantic matching
 - Support for any embedding model (OpenAI, Cohere, custom, etc.)
 
-### ⚡ High Performance
+### High Performance
 - **Sub-5ms cache lookups** with optimized vector indexing
 - **Efficient storage** with minimal overhead per entry
 - **Fast eviction** mechanisms to maintain cache health
 - **Index optimization** support for large-scale deployments (100k+ entries)
 
-### 🎛️ Flexible Cache Management
+### Flexible Cache Management
 - **Multiple eviction policies**: LRU, LFU, and TTL-based
 - **Per-query TTL** or global defaults
 - **Tag-based organization** for grouped invalidation
 - **Pattern-based invalidation** using SQL LIKE patterns
 - **Auto-eviction** with configurable policies
 
-### 📊 Observability & Monitoring
+### Observability & Monitoring
 - **Real-time statistics**: hit rate, total entries, cache size
 - **Health metrics**: expired entries, memory usage, eviction counts
 - **Performance tracking**: lookup times, similarity scores
 - **Built-in views** for monitoring and analysis
 
-### 🔧 Production Ready
+### Production Ready
 - **Comprehensive logging** with configurable levels
 - **Crash-safe** error handling
 - **ACID compliance** for cache operations
@@ -85,7 +85,7 @@
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Installation
 
@@ -130,13 +130,13 @@ SELECT semantic_cache.init_schema();
 SELECT * FROM semantic_cache.cache_stats();
 ```
 
-✅ **You're ready to go!**
+**You're ready to go!**
 
 ---
 
-## 📘 Basic Usage
+## Basic Usage
 
-### 1️⃣ Cache a Query Result
+### 1. Cache a Query Result
 
 ```sql
 SELECT semantic_cache.cache_query(
@@ -149,7 +149,7 @@ SELECT semantic_cache.cache_query(
 -- Returns: cache_id (bigint)
 ```
 
-### 2️⃣ Retrieve Cached Result
+### 2. Retrieve Cached Result
 
 ```sql
 SELECT * FROM semantic_cache.get_cached_result(
@@ -167,7 +167,7 @@ SELECT * FROM semantic_cache.get_cached_result(
  true  | {"total": 150, "orders"... | 0.973            | 245
 ```
 
-### 3️⃣ Monitor Performance
+### 3. Monitor Performance
 
 ```sql
 -- Comprehensive statistics
@@ -182,7 +182,9 @@ SELECT * FROM semantic_cache.recent_cache_activity LIMIT 10;
 
 ---
 
-## 📚 API Reference
+## API Reference
+
+The extension provides a complete set of SQL functions for caching, eviction, monitoring, and configuration.
 
 ### Core Functions
 
@@ -220,6 +222,8 @@ Retrieve a cached result by semantic similarity.
 
 ### Cache Eviction
 
+Multiple eviction strategies are available to manage cache size and freshness.
+
 #### `evict_expired()`
 Remove all expired cache entries.
 
@@ -249,7 +253,7 @@ SELECT semantic_cache.auto_evict();
 ```
 
 #### `clear_cache()`
-⚠️ Remove **all** cache entries (use with caution).
+Remove **all** cache entries (use with caution).
 
 ```sql
 SELECT semantic_cache.clear_cache();
@@ -258,6 +262,8 @@ SELECT semantic_cache.clear_cache();
 ---
 
 ### Statistics & Monitoring
+
+Built-in functions and views provide real-time visibility into cache performance.
 
 #### `cache_stats()`
 Get comprehensive cache statistics.
@@ -279,6 +285,8 @@ hit_rate_percent   | Hit rate as a percentage
 ---
 
 ### Configuration
+
+All runtime settings can be configured through the cache configuration table.
 
 Configuration settings are stored in the `semantic_cache.cache_config` table. You can view and modify them directly:
 
@@ -305,7 +313,9 @@ SELECT value FROM semantic_cache.cache_config WHERE key = 'eviction_policy';
 
 ---
 
-## 🔨 Build & Development
+## Build & Development
+
+The extension uses the standard PostgreSQL PGXS build system for compilation and installation.
 
 ### Build Commands
 
@@ -341,35 +351,37 @@ Fully compatible with all PostgreSQL-supported platforms:
 
 | Platform | Status | Notes |
 |----------|--------|-------|
-| 🐧 Linux | ✅ | Ubuntu, Debian, RHEL, Rocky, Fedora, etc. |
-| 🍎 macOS | ✅ | Intel & Apple Silicon |
-| 🪟 Windows | ✅ | Via MinGW or MSVC |
-| 🔧 BSD | ✅ | FreeBSD, OpenBSD |
+| Linux | Supported | Ubuntu, Debian, RHEL, Rocky, Fedora, etc. |
+| macOS | Supported | Intel & Apple Silicon |
+| Windows | Supported | Via MinGW or MSVC |
+| BSD | Supported | FreeBSD, OpenBSD |
 
 ### Tested PostgreSQL Versions
 
 | Version | Status | Notes |
 |---------|--------|-------|
-| PG 14 | ✅ Tested | Full support |
-| PG 15 | ✅ Tested | Full support |
-| PG 16 | ✅ Tested | Full support |
-| PG 17 | ✅ Tested | Full support |
-| PG 18 | ✅ Tested | Full support |
-| Future versions | ✅ Expected | Standard PGXS compatibility |
+| PG 14 | Tested | Full support |
+| PG 15 | Tested | Full support |
+| PG 16 | Tested | Full support |
+| PG 17 | Tested | Full support |
+| PG 18 | Tested | Full support |
+| Future versions | Expected | Standard PGXS compatibility |
 
 ---
 
-## ⚡ Performance
+## Performance
+
+The extension is optimized for sub-millisecond cache lookups with minimal overhead.
 
 ### Runtime Metrics
 
 | Operation | Performance | Notes |
 |-----------|-------------|-------|
-| 🔍 Cache lookup | **< 5ms** | With optimized vector index |
-| 💾 Cache insert | **< 10ms** | Including embedding storage |
-| 🗑️ Eviction (1000 entries) | **< 50ms** | Efficient batch operations |
-| 📊 Statistics query | **< 1ms** | Materialized views |
-| 🎯 Similarity search | **2-3ms avg** | IVFFlat/HNSW indexed |
+| Cache lookup | **< 5ms** | With optimized vector index |
+| Cache insert | **< 10ms** | Including embedding storage |
+| Eviction (1000 entries) | **< 50ms** | Efficient batch operations |
+| Statistics query | **< 1ms** | Materialized views |
+| Similarity search | **2-3ms avg** | IVFFlat/HNSW indexed |
 
 ### Expected Hit Rates
 
@@ -407,7 +419,9 @@ Evict LRU              | 500    | ~25ms      | 0.05ms
 
 ---
 
-## 🏭 Production Deployment
+## Production Deployment
+
+For production environments, optimize PostgreSQL settings and set up automated maintenance.
 
 ### PostgreSQL Configuration
 
@@ -451,6 +465,8 @@ SELECT * FROM cron.job WHERE jobname LIKE 'semantic-cache%';
 
 ### Index Optimization
 
+Choose the appropriate vector index strategy based on your cache size.
+
 #### Small to Medium Caches (< 100k entries)
 Default IVFFlat index works well out of the box.
 
@@ -483,6 +499,8 @@ CREATE INDEX idx_cache_embedding_hnsw
 
 ### Monitoring Setup
 
+Set up custom views to monitor cache health and performance metrics.
+
 Create a monitoring dashboard view:
 
 ```sql
@@ -501,6 +519,8 @@ SELECT * FROM semantic_cache.production_dashboard;
 
 ### High Availability Considerations
 
+The cache integrates seamlessly with PostgreSQL's replication and backup mechanisms.
+
 ```sql
 -- Regular backups of cache metadata (optional)
 pg_dump -U postgres -d your_db -t semantic_cache.cache_entries -t semantic_cache.cache_metadata -F c -f cache_backup.dump
@@ -511,7 +531,7 @@ pg_dump -U postgres -d your_db -t semantic_cache.cache_entries -t semantic_cache
 
 ---
 
-## 🔗 Integration Examples
+## Integration Examples
 
 ### Python with OpenAI
 
@@ -569,10 +589,10 @@ class SemanticCache:
 
             result = cur.fetchone()
             if result and result[0]:  # Cache hit
-                print(f"✅ Cache HIT (similarity: {result[2]:.3f}, age: {result[3]}s)")
+                print(f"Cache HIT (similarity: {result[2]:.3f}, age: {result[3]}s)")
                 return json.loads(result[1])
             else:
-                print("❌ Cache MISS")
+                print("Cache MISS")
                 return None
 
     def stats(self) -> Dict[str, Any]:
@@ -651,10 +671,10 @@ class SemanticCache {
         const { found, result_data, similarity_score, age_seconds } = res.rows[0];
 
         if (found) {
-            console.log(`✅ Cache HIT (similarity: ${similarity_score.toFixed(3)}, age: ${age_seconds}s)`);
+            console.log(`Cache HIT (similarity: ${similarity_score.toFixed(3)}, age: ${age_seconds}s)`);
             return JSON.parse(result_data);
         } else {
-            console.log('❌ Cache MISS');
+            console.log('Cache MISS');
             return null;
         }
     }
@@ -689,7 +709,7 @@ For additional integration patterns and use cases, see:
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! This extension is built with standard PostgreSQL C APIs.
 
@@ -708,48 +728,14 @@ Contributions are welcome! This extension is built with standard PostgreSQL C AP
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the **PostgreSQL License**.
 
 ---
 
-## 📞 Support & Resources
+## Support & Resources
 
-### Documentation
-- **Getting Started**: [GETTING_STARTED.md](GETTING_STARTED.md)
-- **API Examples**: `examples/usage_examples.sql`
-- **Logging Guide**: [LOGGING_FEATURE_GUIDE.md](LOGGING_FEATURE_GUIDE.md)
-- **PostgreSQL Documentation**: [postgresql.org/docs](https://www.postgresql.org/docs/)
-
-### Getting Help
 - **GitHub Issues**: Report bugs and request features
 - **Example Code**: Check `examples/` directory for usage patterns
 - **Test Suite**: See `test/` directory for comprehensive examples
-
-### Related Projects
-- [pgvector](https://github.com/pgvector/pgvector) - Vector similarity search for PostgreSQL
-- [pg_cron](https://github.com/citusdata/pg_cron) - Job scheduler for PostgreSQL
-
----
-
-## 🏆 Credits
-
-**Created by**: Muhammad Aqeel - PostgreSQL Infrastructure Engineer
-
-**Built with**:
-- Standard PostgreSQL C API
-- [pgvector](https://github.com/pgvector/pgvector) for vector operations
-- PGXS build infrastructure
-
----
-
-<div align="center">
-
-### ⭐ Star this repository if you find it useful!
-
-**pg_semantic_cache** - Intelligent semantic caching for PostgreSQL
-
-[Quick Start](#-quick-start) • [Documentation](#-api-reference) • [Examples](#-integration-examples)
-
-</div>
