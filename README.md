@@ -1,26 +1,32 @@
 # pg_semantic_cache
 
-pg_semantic_cache allows you to leverage vector embeddings to cache and retrieve query results based on semantic similarity.
+pg_semantic_cache allows you to leverage vector embeddings to cache and
+retrieve query results based on semantic similarity.
 
-[pg_semantic_cache Introduction](docs/index.md)
-[pg_semantic_cache Architecture](docs/architecture.md)
-[pg_semantic_cache Use Cases](docs/use_cases.md)
-[Quick Start](docs/quick_start.md)
-[Installation](docs/installation.md)
-[Configuration](docs/configuration.md)
-[Deploying in a Production Environment](docs/deployment.md)
-[Using pg_semantic_cache Functions](docs/functions.md)
-[Sample Integrations](docs/integration.md)
-[Monitoring](docs/logging.md)
-[Performance and Benchmarking](docs/performance.md)
-[Logging](docs/logging.md)
-[Troubleshooting](docs/troubleshooting.md)
-[FAQ](docs/FAQ.md)
-[Developers](docs/development.md)
+## Table of Contents
 
----
+- [pg_semantic_cache Introduction](docs/index.md)
+- [pg_semantic_cache Architecture](docs/architecture.md)
+- [pg_semantic_cache Use Cases](docs/use_cases.md)
+- [Quick Start](#quick-start)
+- [Installation](docs/installation.md)
+- [Configuration](docs/configuration.md)
+- [Deploying in a Production Environment](docs/deployment.md)
+- [Using pg_semantic_cache Functions](docs/functions.md)
+- [Sample Integrations](docs/integration.md)
+- [Monitoring](docs/logging.md)
+- [Performance and Benchmarking](docs/performance.md)
+- [Logging](docs/logging.md)
+- [Troubleshooting](docs/troubleshooting.md)
+- [FAQ](docs/FAQ.md)
+- [Developers](docs/development.md)
 
-`pg_semantic_cache` enables **semantic query result caching** for PostgreSQL. Unlike traditional caching that requires exact query matches, this extension uses vector embeddings to find and retrieve cached results for semantically similar queries.
+For comprehensive documentation, visit [docs.pgedge.com](https://docs.pgedge.com).
+
+`pg_semantic_cache` enables **semantic query result caching** for
+PostgreSQL. Unlike traditional caching that requires exact query matches,
+this extension uses vector embeddings to find and retrieve cached results
+for semantically similar queries.
 
 ## Quick Start
 
@@ -67,8 +73,6 @@ The following steps walk you through installing and configuring the extension.
    SELECT * FROM semantic_cache.cache_stats();
    ```
 
----
-
 ### Configuration
 
 All runtime settings can be configured through the cache configuration table.
@@ -96,7 +100,6 @@ SELECT value FROM semantic_cache.cache_config WHERE key = 'eviction_policy';
 | `eviction_policy` | 'lru' | Eviction policy: lru, lfu, or ttl |
 | `similarity_threshold` | '0.95' | Default similarity threshold |
 
----
 
 ## Basic Usage
 
@@ -157,7 +160,6 @@ and monitoring cached query results.
    SELECT * FROM semantic_cache.recent_cache_activity LIMIT 10;
    ```
 
----
 
 ## Building the Documentation
 
@@ -186,9 +188,18 @@ Before building the documentation, install Python 3.8+ and pip.
 
 ## Support & Resources
 
-- Report bugs and request features through the GitHub Issues page.
-- Check the `examples/` directory for usage patterns and code samples.
-- See the `test/` directory for comprehensive testing examples.
+To report an issue with this software, visit the
+[GitHub Issues](https://github.com/pgEdge/pg_semantic_cache/issues) page.
+
+Check the `examples/` directory for usage patterns and code samples; see
+the `test/` directory for comprehensive testing examples.
+
+For more information, visit [docs.pgedge.com](https://docs.pgedge.com).
+
+## Contributing
+
+We welcome your project contributions; for more information, see
+[docs/development.md](docs/development.md).
 
 ---
 
