@@ -1,32 +1,29 @@
 # pg_semantic_cache
 
-pg_semantic_cache is a PostgreSQL extension that implements semantic query
-result caching using vector embeddings. Unlike traditional query caching that
-relies on exact string matching, pg_semantic_cache understands the *meaning*
-of queries through vector similarity, enabling cache hits even when queries
-are phrased differently.
+The pg_semantic_cache extension implements semantic query result caching
+using vector embeddings. Unlike traditional query caching that relies on
+exact string matching, pg_semantic_cache understands the meaning of queries
+through vector similarity. The extension enables cache hits even when
+queries are phrased differently.
 
-This extension is particularly valuable for:
+The extension is particularly valuable for the following use cases:
 
-- AI/LLM applications can cache expensive LLM API calls and RAG (Retrieval
-  Augmented Generation) results.
-- Analytics workloads can reuse results from complex analytical queries with
-  similar parameters.
-- External API queries can cache results from expensive external data
-  sources.
-- Database query optimization can reduce load on expensive database
-  operations.
+- AI and LLM applications can cache expensive LLM API calls and RAG results.
+- Analytics workloads can reuse results from complex analytical queries.
+- External API queries can cache results from expensive external sources.
+- Database query optimization can reduce load on expensive operations.
 
-### Why Use Semantic Caching
+## Why Use Semantic Caching
 
-Semantic caching transforms how applications handle query results by
-using vector matching rather than matching exact queries. Traditional caching
-systems can miss cached result sets when queries are phrased differently,
-while semantic caching recognizes that "What was Q4 revenue?" and "Show Q4 revenue" as the same question. This approach dramatically increases cache hit rates
-and reduces costs for AI applications, analytics workloads, and external API
-calls.
+Semantic caching transforms how applications handle query results by using
+vector matching rather than matching exact queries. Traditional caching
+systems can miss cached result sets when queries are phrased differently.
+Semantic caching recognizes that "What was Q4 revenue?" and "Show Q4
+revenue" represent the same question. This approach dramatically increases
+cache hit rates and reduces costs for AI applications.
 
-Queries that would overlook cached result sets work with a semantic cache:
+The following table shows queries that would overlook cached result sets
+with traditional caching but work with a semantic cache:
 
 | Traditional Cache | Semantic Cache |
 |-------------------|----------------|
@@ -34,34 +31,33 @@ Queries that would overlook cached result sets work with a semantic cache:
 | "Show Q4 revenue" ❌ Miss | "Show Q4 revenue" ✅ Hit |
 | "Q4 revenue please" ❌ Miss | "Q4 revenue please" ✅ Hit |
 
-### Cost Savings Example
+## Cost Savings Example
 
-For an LLM application making 10,000 queries per day:
+For an LLM application making 10,000 queries per day, semantic caching can
+provide significant cost savings. The following example demonstrates the
+potential savings:
 
-- Without caching costs $200/day (at $0.02 per query).
-- With 80% cache hit rate costs $40/day.
-- Savings are $160/day or $58,400/year.
+- Without caching, the application costs $200 per day (at $0.02 per query).
+- With an 80% cache hit rate, the application costs $40 per day.
+- The savings are $160 per day or $58,400 per year.
 
-### Key Features
+## Key Features
+
+The pg_semantic_cache extension includes the following features:
 
 - Semantic matching uses pgvector for similarity-based cache lookups.
 - Flexible TTL provides per-entry time-to-live configuration.
 - Tag-based management organizes and invalidates cache entries by tags.
-- Multiple eviction policies include LRU, LFU, and TTL-based automatic
-  eviction.
+- Multiple eviction policies include LRU, LFU, and TTL-based eviction.
 - Cost tracking monitors and reports on query cost savings.
-- Configurable dimensions support various embedding models (768, 1536,
-  3072+ dimensions).
-- Multiple index types include IVFFlat (fast) or HNSW (accurate) vector
-  indexes.
-- Comprehensive monitoring provides built-in statistics, views, and health
-  metrics.
+- Configurable dimensions support various embedding models.
+- Multiple index types include IVFFlat (fast) or HNSW (accurate) indexes.
+- Comprehensive monitoring provides built-in statistics and health metrics.
 
-### Cross-Platform Support
+## Cross-Platform Support
 
 The extension is fully compatible with all PostgreSQL-supported platforms.
-
-Fully compatible with all PostgreSQL-supported platforms:
+The following table shows the platform support status:
 
 | Platform | Status | Notes |
 |----------|--------|-------|
