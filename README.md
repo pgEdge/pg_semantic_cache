@@ -5,9 +5,9 @@ retrieve query results based on semantic similarity.
 
 ## Table of Contents
 
-- [pg_semantic_cache Introduction](docs/index.md)
-- [pg_semantic_cache Architecture](docs/architecture.md)
-- [pg_semantic_cache Use Cases](docs/use_cases.md)
+- [Overview](docs/index.md)
+- [Architecture](docs/architecture.md)
+- [Use Cases](docs/use_cases.md)
 - [Quick Start](#quick-start)
 - [Installation](docs/installation.md)
 - [Configuration](docs/configuration.md)

@@ -68,41 +68,48 @@ markdown_extensions:
           format: !!python/name:pymdownx.superfences.fence_code_format
 
 nav:
-  - Home: index.md
-  - Using Semantic Caching: architecture.md
-  - Getting Started:
-      - Quick Start Guide: quick_start.md
-      - Building from Source: installation.md
-      - Configuring pg_semantic_cache: configuration.md
-  - Usage:
-      - Use Cases: use_cases.md
-      - Monitoring: monitoring.md
-  - Reference:
-      - Functions:
-          - Overview: functions/index.md
-          - Caching:
-              - cache_query: functions/cache_query.md
-              - get_cached_result: functions/get_cached_result.md
-              - invalidate_cache: functions/invalidate_cache.md
-          - Monitoring:
-              - cache_stats: functions/cache_stats.md
-              - cache_hit_rate: functions/cache_hit_rate.md
-          - Eviction:
-              - evict_expired: functions/evict_expired.md
-              - evict_lru: functions/evict_lru.md
-              - evict_lfu: functions/evict_lfu.md
-              - auto_evict: functions/auto_evict.md
-              - clear_cache: functions/clear_cache.md
-          - Configuration:
-              - set_vector_dimension: functions/set_vector_dimension.md
-              - get_vector_dimension: functions/get_vector_dimension.md
-              - set_index_type: functions/set_index_type.md
-              - get_index_type: functions/get_index_type.md
-              - rebuild_index: functions/rebuild_index.md
-          - Cost Tracking:
-              - log_cache_access: functions/log_cache_access.md
-              - get_cost_savings: functions/get_cost_savings.md
-          - Utility:
-              - init_schema: functions/init_schema.md
+  - Overview: index.md
+  - Architecture: architecture.md
+  - Use Cases: use_cases.md
+  - Quick Start: quick_start.md
+  - Installation: installation.md
+  - Configuration: configuration.md
+  - Deployment: production.md
+  - Functions:
+      - Overview: functions.md
+      - Function Reference: functions/index.md
+      - Caching:
+          - cache_query: functions/cache_query.md
+          - get_cached_result: functions/get_cached_result.md
+          - invalidate_cache: functions/invalidate_cache.md
+      - Monitoring:
+          - cache_stats: functions/cache_stats.md
+          - cache_hit_rate: functions/cache_hit_rate.md
+      - Eviction:
+          - evict_expired: functions/evict_expired.md
+          - evict_lru: functions/evict_lru.md
+          - evict_lfu: functions/evict_lfu.md
+          - auto_evict: functions/auto_evict.md
+          - clear_cache: functions/clear_cache.md
+      - Configuration:
+          - set_vector_dimension: functions/set_vector_dimension.md
+          - get_vector_dimension: functions/get_vector_dimension.md
+          - set_index_type: functions/set_index_type.md
+          - get_index_type: functions/get_index_type.md
+          - rebuild_index: functions/rebuild_index.md
+      - Cost Tracking:
+          - log_cache_access: functions/log_cache_access.md
+          - get_cost_savings: functions/get_cost_savings.md
+      - Utility:
+          - init_schema: functions/init_schema.md
+  - Sample Integrations:
+      - Overview: integration.md
+      - pgEdge RAG: integrations/pgedge-rag.md
+  - Monitoring: monitoring.md
+  - Logging: logging.md
+  - Performance and Benchmarking: performance.md
+  - Security: security-audit.md
   - Troubleshooting: troubleshooting.md
   - FAQ: FAQ.md
+  - Developers: development.md
+  - License: LICENSE.md
