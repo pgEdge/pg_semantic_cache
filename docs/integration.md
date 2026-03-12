@@ -1,15 +1,17 @@
-# Integration Examples
+# Sample Integrations
 
 This page provides integration examples for using pg_semantic_cache with
-popular programming languages and embedding providers.
+popular programming languages and embedding providers. The examples
+demonstrate cache integration patterns for Python and Node.js applications.
 
 ## Python with OpenAI
 
 The following example demonstrates how to integrate the semantic cache with
-OpenAI embeddings using Python and the psycopg2 library.
+OpenAI embeddings using Python and the `psycopg2` library. The integration
+provides a simple Python class that wraps the cache operations.
 
-In the following example, the `SemanticCache` class wraps the cache functions
-and handles embedding generation through the OpenAI API.
+In the following example, the `SemanticCache` class wraps the cache
+functions and handles embedding generation through the OpenAI API:
 
 ```python
 import psycopg2
@@ -62,7 +64,7 @@ class SemanticCache:
             """, (embedding, similarity, max_age))
 
             result = cur.fetchone()
-            if result and result[0]:  # Cache hit
+            if result and result[0]:
                 print(f"Cache HIT (similarity: {result[2]:.3f}, age: {result[3]}s)")
                 return json.loads(result[1])
             else:
@@ -77,34 +79,29 @@ class SemanticCache:
             values = cur.fetchone()
             return dict(zip(columns, values))
 
-# Usage example
 cache = SemanticCache(
     conn_string="dbname=mydb user=postgres",
     openai_api_key="sk-..."
 )
 
-# Try to get from cache, compute if miss
 def get_revenue_data(query: str) -> Dict:
     result = cache.get(query, similarity=0.95)
 
     if result:
-        return result  # Cache hit!
+        return result
 
-    # Cache miss - compute the result
-    result = expensive_database_query()  # Your expensive query here
+    result = expensive_database_query()
     cache.cache(query, result, ttl=3600, tags=['revenue', 'analytics'])
     return result
 
-# Example queries
 data1 = get_revenue_data("What was Q4 2024 revenue?")
 data2 = get_revenue_data("Show me revenue for last quarter")
 data3 = get_revenue_data("Q4 sales figures?")
 
-# View statistics
 print(cache.stats())
 ```
 
-The preceding example demonstrates three key operations:
+The preceding example demonstrates the following key operations:
 
 - The cache initialization with database connection and API credentials.
 - The automatic fallback from cache lookup to computation when needed.
@@ -113,10 +110,11 @@ The preceding example demonstrates three key operations:
 ## Node.js with OpenAI
 
 The following example shows how to use the semantic cache with Node.js and
-the OpenAI API through an asynchronous interface.
+the OpenAI API through an asynchronous interface. The Node.js integration
+uses modern async/await patterns for clean asynchronous code.
 
-In the following example, the `SemanticCache` class uses async/await patterns
-to handle database operations and embedding generation.
+In the following example, the `SemanticCache` class uses async/await
+patterns to handle database operations and embedding generation:
 
 ```javascript
 const { Client } = require('pg');
@@ -171,7 +169,6 @@ class SemanticCache {
     }
 }
 
-// Usage
 const cache = new SemanticCache(
     { host: 'localhost', database: 'mydb', user: 'postgres' },
     'sk-...'
@@ -189,9 +186,8 @@ async function getRevenueData(query) {
 
 ## Additional Resources
 
-The repository includes additional integration examples and test files.
-
-For more comprehensive examples, refer to the following files:
+The repository includes additional integration examples and test files; see
+the following resources for more comprehensive examples:
 
 - The `examples/usage_examples.sql` file contains comprehensive SQL examples.
 - The `test/benchmark.sql` file provides performance testing examples.

@@ -1,16 +1,17 @@
 # Quick Start
 
-The steps that follow are designed to get you started with semantic caching
-quickly and easily. Before using pg_semantic_cache, you must install:
+The steps that follow are designed to get you started with semantic
+caching quickly and easily. Before using pg_semantic_cache, you must
+install the following components:
 
-- PostgreSQL 14, 15, 16, 17, or 18
-- the pgvector extension
-- a C compiler (gcc or clang)
-- PostgreSQL development headers
+- PostgreSQL version 14, 15, 16, 17, or 18.
+- The pgvector extension.
+- A C compiler such as gcc or clang.
+- PostgreSQL development headers.
 
 ## Installation
 
-Use the following commands to build the extension from the Github
+Use the following commands to build the extension from the GitHub
 repository:
 
 ```bash
@@ -24,8 +25,8 @@ make
 sudo make install
 ```
 
-After building the extension, you need to install and create the extensions
-you'll be using:
+After building the extension, you need to install and create the
+extensions you will be using:
 
 ```sql
 -- Install required extensions
@@ -38,23 +39,25 @@ SELECT * FROM semantic_cache.cache_health;
 
 ### Using pg_semantic_cache
 
-Use the following commands to add a result set to a cache, and then query the
-cache with a similar query:
+Use the following commands to add a result set to a cache, and then
+query the cache with a similar query:
+
+In the following example, the `cache_query` function stores a query
+result with its embedding, and the `get_cached_result` function
+retrieves a semantically similar cached result:
 
 ```sql
--- Cache a query result with its embedding
 SELECT semantic_cache.cache_query(
     query_text := 'What was our Q4 2024 revenue?',
-    query_embedding := '[0.123, 0.456, ...]'::text,  -- From embedding model
+    query_embedding := '[0.123, 0.456, ...]'::text,
     result_data := '{"answer": "Q4 2024 revenue was $2.4M"}'::jsonb,
-    ttl_seconds := 1800,  -- 30 minutes
+    ttl_seconds := 1800,
     tags := ARRAY['llm', 'revenue']
 );
 
--- Retrieve with a semantically similar query
 SELECT * FROM semantic_cache.get_cached_result(
-    query_embedding := '[0.124, 0.455, ...]'::text,  -- Slightly different
-    similarity_threshold := 0.95  -- 95% similarity required
+    query_embedding := '[0.124, 0.455, ...]'::text,
+    similarity_threshold := 0.95
 );
 ```
 

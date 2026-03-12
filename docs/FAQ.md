@@ -1,37 +1,55 @@
 # Frequently Asked Questions
 
+The FAQ is broken into sections to simplify finding answers to the most
+commonly asked questions.
+
+| Section | Description |
+|---------|-------------|
+| [General Questions](#general-questions) | General semantic caching questions |
+| [Installation & Setup](#installation--setup) | Installation and setup concerns |
+| [Performance](#performance) | Performance characteristics and optimization |
+| [Embeddings](#embeddings) | Embedding models and usage |
+| [Configuration](#configuration) | Configuration options and settings |
+| [Troubleshooting](#troubleshooting) | Common troubleshooting scenarios |
+| [Best Practices](#best-practices) | Best practices for effective usage |
+
 ## General Questions
+
+The following sections provide general information about semantic
+caching and the pg_semantic_cache extension.
 
 ### What is semantic caching?
 
 Semantic caching uses vector embeddings to understand the meaning of
-queries, not just exact text matching. When you search for "What was Q4
-revenue?", the cache can return results for semantically similar queries
-like "Show Q4 revenue" or "Q4 revenue please" even though the exact text
-is different.
+queries, not just exact text matching. When you search for "What was
+Q4 revenue?", the cache can return results for semantically similar
+queries like "Show Q4 revenue" or "Q4 revenue please" even though
+the exact text is different.
 
-Traditional caching requires exact string matches, while semantic caching
-matches based on similarity scores (typically 90-98%).
+Traditional caching requires exact string matches, while semantic
+caching matches based on similarity scores (typically 90-98%).
 
 ### Why use pg_semantic_cache instead of a traditional cache like Redis?
 
-Use pg_semantic_cache when:
+Use pg_semantic_cache when you need one of the following
+capabilities:
 
-- Queries are phrased differently but mean the same thing (LLM
-  applications, natural language queries).
+- Queries are phrased differently but mean the same thing, such as
+  in LLM applications or natural language queries.
 - You need semantic understanding of query similarity.
-- You're already using PostgreSQL and want tight integration.
+- You are already using PostgreSQL and want tight integration.
 - You need persistent caching with complex querying capabilities.
 
-Use traditional caching (Redis, Memcached) when:
+Use traditional caching solutions such as Redis or Memcached when
+you need one of the following capabilities:
 
 - You need exact key-value matching.
 - Sub-millisecond latency is critical.
 - Queries are deterministic and rarely vary.
 - You need distributed caching across multiple services.
 
-Use both: pg_semantic_cache for semantic matching + Redis for hot-path
-exact matches!
+You can use both pg_semantic_cache for semantic matching and Redis
+for hot-path exact matches.
 
 ### How does it compare to application-level caching?
 
@@ -49,19 +67,23 @@ caching:
 
 ### Is it production-ready?
 
-Yes! pg_semantic_cache is production-ready and has the following
+Yes, pg_semantic_cache is production-ready and has the following
 characteristics:
-- Written in C using stable PostgreSQL APIs
-- Tested with PostgreSQL 14-18
-- Used in production environments
-- Small, focused codebase (~900 lines)
-- No complex dependencies (just pgvector)
+
+- The extension is written in C using stable PostgreSQL APIs.
+- The extension is tested with PostgreSQL 14-18.
+- The extension is used in production environments.
+- The extension has a small, focused codebase of about 900 lines.
+- The extension has no complex dependencies other than pgvector.
 
 ## Installation & Setup
 
+The following sections address common installation and setup
+concerns for pg_semantic_cache.
+
 ### Do I need to install pgvector separately?
 
-Yes, pgvector is a required dependency. Install it before
+Yes, pgvector is a required dependency. Install it before installing
 pg_semantic_cache:
 
 ```bash
@@ -77,16 +99,15 @@ make && sudo make install
 
 ### Can I use it with managed PostgreSQL services?
 
-It depends on the service:
+It depends on the service; check if your provider supports custom C
+extensions and pgvector:
 
-- Self-hosted PostgreSQL: Yes
-- AWS RDS: Yes (if you can install extensions)
-- Azure Database for PostgreSQL: Yes (flexible server)
-- Google Cloud SQL: Check extension support
-- Supabase: Yes (pgvector supported)
-- Neon: Yes (pgvector supported)
-
-Check if your provider supports custom C extensions and pgvector.
+- Self-hosted PostgreSQL: Yes.
+- AWS RDS: Yes, if you can install extensions.
+- Azure Database for PostgreSQL: Yes, on flexible server.
+- Google Cloud SQL: Check extension support.
+- Supabase: Yes, pgvector is supported.
+- Neon: Yes, pgvector is supported.
 
 ### What PostgreSQL versions are supported?
 
@@ -107,56 +128,65 @@ ALTER EXTENSION pg_semantic_cache UPDATE TO '0.4.0';
 
 ## Performance
 
+The following sections address performance characteristics and
+optimization strategies for pg_semantic_cache.
+
 ### How fast are cache lookups?
 
 Cache lookups are very fast, with the following performance
 characteristics:
 
-Target: < 5ms for most queries
+Target performance is less than 5ms for most queries.
 
-Typical Performance:
+Typical performance characteristics:
 
-- IVFFlat index: 2-5ms
-- HNSW index: 1-3ms
-- Without index: 50-500ms (don't do this!)
+- IVFFlat index: 2-5ms.
+- HNSW index: 1-3ms.
+- Without index: 50-500ms (not recommended).
 
-Factors affecting speed:
+Factors affecting speed include the following:
 
-- Cache size (more entries = slightly slower)
-- Vector dimension (1536 vs 3072)
-- Index type and parameters
-- PostgreSQL configuration (work_mem)
+- Cache size, where more entries result in slightly slower lookups.
+- Vector dimension, such as 1536 versus 3072.
+- Index type and parameters.
+- PostgreSQL configuration, particularly work_mem.
+
+In the following example, the `\timing` command measures the lookup
+speed:
 
 ```sql
--- Test your lookup speed
 \timing on
 SELECT * FROM semantic_cache.get_cached_result('[...]'::text, 0.95);
 ```
 
 ### How much storage does it use?
 
-Storage requirements vary based on vector dimensions and result sizes:
+Storage requirements vary based on vector dimensions and result
+sizes.
 
-Storage per entry:
+Storage per entry includes the following:
 
-- Vector embedding: ~6KB (1536 dimensions)
-- Result data: Varies (your cached JSONB)
-- Metadata: ~200 bytes
-- Total: 6KB + your data size
+- Vector embedding requires approximately 6KB for 1536 dimensions.
+- Result data varies based on your cached JSONB.
+- Metadata requires approximately 200 bytes.
+- Total storage is 6KB plus your data size.
 
-Example:
+Example storage requirements:
 
-- 10K entries with 10KB results each = ~160MB
-- 100K entries with 5KB results each = ~1.1GB
+- 10K entries with 10KB results each require approximately 160MB.
+- 100K entries with 5KB results each require approximately 1.1GB.
 
 ### What's the maximum cache size?
 
-There's no hard limit, but consider the following practical
+There is no hard limit, but consider the following practical
 considerations:
 
-- < 100K entries: Excellent performance with default settings
-- 100K - 1M entries: Increase IVFFlat lists parameter
-- > 1M entries: Consider partitioning or HNSW index
+- Fewer than 100K entries provide excellent performance with
+  default settings.
+- Between 100K and 1M entries require increasing the IVFFlat lists
+  parameter.
+- More than 1M entries require considering partitioning or the HNSW
+  index.
 
 Use the following command to configure max size:
 
@@ -170,33 +200,40 @@ WHERE key = 'max_cache_size_mb';
 
 Yes, but consider the following factors:
 
-- Large results (> 1MB) consume more storage
-- Serializing/deserializing large JSONB has overhead
-- Consider caching aggregated results instead of full datasets
+- Large results greater than 1MB consume more storage.
+- Serializing and deserializing large JSONB has overhead.
+- Consider caching aggregated results instead of full datasets.
+
+In the following example, caching aggregated results instead of full
+datasets reduces storage overhead:
 
 ```sql
 -- Don't cache this:
-SELECT * FROM huge_table;  -- 100MB result
+SELECT * FROM huge_table;
 
 -- Cache this instead:
 SELECT COUNT(*), AVG(value), summary_stats
-FROM huge_table;  -- 1KB result
+FROM huge_table;
 ```
 
 ## Embeddings
 
+The following sections address embedding models and their use with
+pg_semantic_cache.
+
 ### What embedding models can I use?
 
-Any embedding model that produces fixed-dimension vectors:
+Any embedding model that produces fixed-dimension vectors works with
+the extension.
 
-Popular Models:
+Popular models include the following:
 
-- OpenAI text-embedding-ada-002 (1536 dim)
-- OpenAI text-embedding-3-small (1536 dim)
-- OpenAI text-embedding-3-large (3072 dim)
-- Cohere embed-english-v3.0 (1024 dim)
-- Sentence Transformers all-MiniLM-L6-v2 (384 dim)
-- Sentence Transformers all-mpnet-base-v2 (768 dim)
+- OpenAI text-embedding-ada-002 with 1536 dimensions.
+- OpenAI text-embedding-3-small with 1536 dimensions.
+- OpenAI text-embedding-3-large with 3072 dimensions.
+- Cohere embed-english-v3.0 with 1024 dimensions.
+- Sentence Transformers all-MiniLM-L6-v2 with 384 dimensions.
+- Sentence Transformers all-mpnet-base-v2 with 768 dimensions.
 
 Use the following commands to configure dimension:
 
@@ -207,14 +244,14 @@ SELECT semantic_cache.rebuild_index();
 
 ### Do I need to generate embeddings myself?
 
-Yes. pg_semantic_cache stores and searches embeddings, but doesn't
+Yes, pg_semantic_cache stores and searches embeddings, but does not
 generate them.
 
-Typical workflow:
+The typical workflow includes the following steps:
 
-1. Generate embedding using your chosen model/API
-2. Pass embedding to `cache_query()` or `get_cached_result()`
-3. Extension handles similarity search
+1. Generate embedding using your chosen model or API.
+2. Pass embedding to `cache_query()` or `get_cached_result()`.
+3. The extension handles similarity search.
 
 See [Use Cases](use_cases.md) for integration examples.
 
@@ -222,14 +259,12 @@ See [Use Cases](use_cases.md) for integration examples.
 
 Yes, but you need to rebuild the cache:
 
+In the following example, changing the vector dimension and
+rebuilding the index clears all cached data:
+
 ```sql
--- Change dimension
 SELECT semantic_cache.set_vector_dimension(3072);
-
--- Rebuild (WARNING: clears all cached data)
 SELECT semantic_cache.rebuild_index();
-
--- Re-cache entries with new embeddings
 ```
 
 ### What similarity threshold should I use?
@@ -237,64 +272,80 @@ SELECT semantic_cache.rebuild_index();
 Use the following recommendations to select an appropriate similarity
 threshold:
 
-- 0.98-0.99: Nearly identical queries (financial data, strict matching)
-- 0.95-0.97: Very similar queries (recommended starting point)
-- 0.90-0.94: Similar queries (good for exploratory queries)
-- 0.85-0.89: Somewhat related (use with caution)
-- < 0.85: Too lenient (likely irrelevant results)
+- Values from 0.98 to 0.99 match nearly identical queries, suitable
+  for financial data or strict matching.
+- Values from 0.95 to 0.97 match very similar queries and provide a
+  recommended starting point.
+- Values from 0.90 to 0.94 match similar queries and work well for
+  exploratory queries.
+- Values from 0.85 to 0.89 match somewhat related queries and should
+  be used with caution.
+- Values less than 0.85 are too lenient and likely produce
+  irrelevant results.
 
-Start with 0.95 and adjust based on your hit rate:
-
-- Hit rate too low? Lower threshold (0.92)
-- Getting irrelevant results? Raise threshold (0.97)
+Start with 0.95 and adjust based on your hit rate by lowering the
+threshold to 0.92 if the hit rate is too low, or raising the
+threshold to 0.97 if you get irrelevant results.
 
 ## Configuration
 
+The following sections address configuration options and settings
+for pg_semantic_cache.
+
 ### How do I choose between IVFFlat and HNSW?
 
-Choose the index type based on your workload characteristics:
+Choose the index type based on your workload characteristics.
 
-Use IVFFlat (default) when:
+Use IVFFlat (default) when you have one of the following
+requirements:
 
-- Cache updates frequently
-- Build time matters
-- < 100K entries
-- Good enough recall (95%+)
+- Cache updates frequently.
+- Build time matters.
+- Fewer than 100K entries.
+- Good enough recall of 95% or higher.
 
-Use HNSW when:
+Use HNSW when you have one of the following requirements:
 
-- Maximum accuracy needed
-- Cache mostly read-only
-- Have pgvector 0.5.0+
-- Can afford slower builds
+- Maximum accuracy is needed.
+- Cache is mostly read-only.
+- You have pgvector 0.5.0 or later.
+- You can afford slower builds.
+
+In the following example, the `set_index_type` function switches to
+the HNSW index:
 
 ```sql
--- Switch to HNSW
 SELECT semantic_cache.set_index_type('hnsw');
 SELECT semantic_cache.rebuild_index();
 ```
 
 ### What TTL should I set?
 
-The TTL depends on your data freshness requirements:
+The TTL depends on your data freshness requirements.
+
+In the following example, different TTL values are set based on data
+freshness requirements:
 
 ```sql
 -- Real-time data (stock prices, weather)
-ttl_seconds := 60  -- 1 minute
+ttl_seconds := 60
 
 -- Dynamic data (user dashboards, reports)
-ttl_seconds := 1800  -- 30 minutes
+ttl_seconds := 1800
 
 -- Semi-static data (analytics, LLM responses)
-ttl_seconds := 7200  -- 2 hours
+ttl_seconds := 7200
 
 -- Static data (reference data)
-ttl_seconds := NULL  -- Never expires
+ttl_seconds := NULL
 ```
 
 ### How often should I run maintenance?
 
-Follow this recommended maintenance schedule:
+Follow this recommended maintenance schedule.
+
+In the following example, different maintenance operations run at
+scheduled intervals:
 
 ```sql
 -- Every 15 minutes: Evict expired entries
@@ -307,7 +358,8 @@ SELECT semantic_cache.auto_evict();
 ANALYZE semantic_cache.cache_entries;
 ```
 
-Set up with pg_cron:
+In the following example, pg_cron schedules the cache eviction:
+
 ```sql
 SELECT cron.schedule('cache-evict', '*/15 * * * *',
     'SELECT semantic_cache.evict_expired()');
@@ -315,53 +367,76 @@ SELECT cron.schedule('cache-evict', '*/15 * * * *',
 
 ## Troubleshooting
 
+The following sections address common troubleshooting scenarios and
+their solutions.
+
 ### Why is my hit rate so low?
 
-Low hit rates typically have one of the following common causes:
+Low hit rates typically have one of the following common causes.
 
-1. Threshold too high
-   ```sql
-   -- Lower from 0.95 to 0.90
-   SELECT * FROM semantic_cache.get_cached_result('[...]'::text, 0.90);
-   ```
+In the following example, lowering the threshold from 0.95 to 0.90
+may improve hit rates:
 
-2. TTL too short
-   ```sql
-   -- Check average entry lifetime
-   SELECT AVG(EXTRACT(EPOCH FROM (NOW() - created_at))) / 3600
-       as avg_age_hours
-   FROM semantic_cache.cache_entries;
-   ```
+```sql
+SELECT * FROM semantic_cache.get_cached_result('[...]'::text, 0.90);
+```
 
-3. Poor embedding quality
-   - Use better embedding model
-   - Ensure consistent embedding generation
+In the following example, checking the average entry lifetime helps
+determine if TTL is too short:
 
-4. Cache too small
-   ```sql
-   -- Check if entries being evicted too quickly
-   SELECT * FROM semantic_cache.cache_stats();
-   ```
+```sql
+SELECT AVG(EXTRACT(EPOCH FROM (NOW() - created_at))) / 3600
+    as avg_age_hours
+FROM semantic_cache.cache_entries;
+```
+
+Poor embedding quality can also cause low hit rates; use a better
+embedding model and ensure consistent embedding generation.
+
+In the following example, checking cache statistics helps determine
+if the cache is too small:
+
+```sql
+SELECT * FROM semantic_cache.cache_stats();
+```
 
 ### Cache lookups are returning no results
 
-Use the following debugging steps to troubleshoot this issue:
+Use the following debugging steps to troubleshoot this issue.
+
+In the following example, checking if the cache has entries is the
+first debugging step:
 
 ```sql
--- 1. Check cache has entries
 SELECT COUNT(*) FROM semantic_cache.cache_entries;
+```
 
--- 2. Check for expired entries
+In the following example, checking for expired entries helps
+identify if entries are being evicted:
+
+```sql
 SELECT COUNT(*) FROM semantic_cache.cache_entries
 WHERE expires_at IS NULL OR expires_at > NOW();
+```
 
--- 3. Try very low threshold
+In the following example, trying a very low threshold helps
+determine if the similarity threshold is too high:
+
+```sql
 SELECT * FROM semantic_cache.get_cached_result('[...]'::text, 0.70);
+```
 
--- 4. Check vector dimension
+In the following example, checking the vector dimension ensures the
+embedding dimensions match:
+
+```sql
 SELECT semantic_cache.get_vector_dimension();
+```
 
--- 5. Manually check similarity
+In the following example, manually checking similarity helps
+identify the closest matches:
+
+```sql
 SELECT
     query_text,
     (1 - (query_embedding <=> '[...]'::vector)) as similarity
@@ -372,34 +447,37 @@ LIMIT 5;
 
 ### Extension won't load
 
-If you encounter the following error:
+If you encounter the following error, the extension control file is
+missing:
 
 ```sql
 ERROR:  could not open extension control file
 ```
 
-Use this solution:
+Use this solution to check the installation and reinstall if
+necessary:
+
 ```bash
-# Check installation
 ls -l $(pg_config --sharedir)/extension/pg_semantic_cache*
 
-# Reinstall
 cd pg_semantic_cache
 sudo make install
 
-# Verify pgvector installed
 ls -l $(pg_config --pkglibdir)/vector.so
 ```
 
 ### Build errors
 
-If you encounter the following build error:
+If you encounter the following build error, PostgreSQL development
+headers are missing:
 
 ```bash
 fatal error: postgres.h: No such file or directory
 ```
 
-Use this solution:
+Use this solution to install the development headers for your
+platform:
+
 ```bash
 # Debian/Ubuntu
 sudo apt-get install postgresql-server-dev-17
@@ -414,81 +492,98 @@ export PATH="/opt/homebrew/opt/postgresql@17/bin:$PATH"
 
 ### Out of memory errors
 
-If you encounter the following error:
+If you encounter the following out of memory error, try one of the
+solutions that follow:
 
 ```sql
 ERROR:  out of memory
 ```
 
-Try one of these solutions:
+In the following example, increasing work_mem provides more memory
+for vector operations:
 
-1. Increase work_mem
-   ```sql
-   SET work_mem = '512MB';
-   ```
+```sql
+SET work_mem = '512MB';
+```
 
-2. Reduce cache size
-   ```sql
-   SELECT semantic_cache.evict_lru(5000);  -- Keep only 5K entries
-   ```
+In the following example, reducing cache size by keeping only 5K
+entries frees memory:
 
-3. Lower vector dimension
-   ```sql
-   SELECT semantic_cache.set_vector_dimension(768);  -- Use smaller model
-   SELECT semantic_cache.rebuild_index();
-   ```
+```sql
+SELECT semantic_cache.evict_lru(5000);
+```
+
+In the following example, lowering the vector dimension to 768
+reduces memory requirements:
+
+```sql
+SELECT semantic_cache.set_vector_dimension(768);
+SELECT semantic_cache.rebuild_index();
+```
 
 ## Best Practices
 
+The following questions provide guidance on best practices for using
+pg_semantic_cache effectively.
+
 ### Should I cache everything?
 
-No! Cache queries that are:
+No, you should cache queries selectively.
 
-- Expensive (slow execution)
-- Frequently repeated (similar queries)
-- Tolerant of slight staleness
-- Semantically searchable
+Cache queries that have the following characteristics:
 
-Don't cache:
+- Expensive queries with slow execution.
+- Frequently repeated queries with similar phrasing.
+- Queries that are tolerant of slight staleness.
+- Queries that are semantically searchable.
 
-- Simple key-value lookups (use Redis)
-- Real-time critical data
-- Unique, one-off queries
-- Queries that must be current
+Do not cache the following types of queries:
+
+- Simple key-value lookups where Redis is more appropriate.
+- Real-time critical data.
+- Unique, one-off queries.
+- Queries that must return current data.
 
 ### How do I test if caching helps?
 
-Use the following approach to measure the performance improvement from
-caching:
+Use the following approach to measure the performance improvement
+from caching.
+
+In the following example, measuring query time without cache
+establishes a baseline:
 
 ```sql
--- Measure query time without cache
 \timing on
 SELECT expensive_query();
--- Time: 450.234 ms
+```
 
--- With cache (first call - miss)
+In the following example, the first call to get_cached_result is a
+cache miss and executes the query:
+
+```sql
 SELECT * FROM semantic_cache.get_cached_result('[...]'::text, 0.95);
--- Time: 3.456 ms (cache miss) + 450.234 ms (execution)
+```
 
--- With cache (subsequent calls - hit)
+In the following example, subsequent calls to get_cached_result are
+cache hits and return much faster:
+
+```sql
 SELECT * FROM semantic_cache.get_cached_result('[...]'::text, 0.95);
--- Time: 3.456 ms (cache hit)
-
--- Speedup: 450 / 3.5 = 128x faster
 ```
 
 ### Should I use tags?
 
-Yes! Tags are useful for:
+Yes, tags are useful for the following purposes:
 
-- Organization: Group by feature (`ARRAY['dashboard', 'sales']`)
-- Bulk invalidation: `invalidate_cache(tag := 'user_123')`
-- Analytics: `SELECT * FROM semantic_cache.cache_by_tag`
-- Debugging: Find entries by category
+- Organization allows you to group by feature.
+- Bulk invalidation allows you to invalidate all entries with a tag.
+- Analytics allows you to query entries by tag.
+- Debugging allows you to find entries by category.
+
+In the following example, the `cache_query` function tags entries
+with application name, feature name, and user ID:
 
 ```sql
--- Tag everything
 SELECT semantic_cache.cache_query(
     query_text,
     embedding,
@@ -501,9 +596,11 @@ SELECT semantic_cache.cache_query(
 
 ## Still Have Questions?
 
-Contact us through the following channels:
+Review our documentation at the [pgEdge website](https://docs.pgedge.com/).
 
-- GitHub Issues: [Report bugs or ask
-  questions](https://github.com/pgedge/pg_semantic_cache/issues)
-- Discussions: [Community
-  discussions](https://github.com/pgedge/pg_semantic_cache/discussions)
+Contact us through the following channels for additional support:
+
+- Use GitHub Issues to report bugs or ask questions at
+  https://github.com/pgedge/pg_semantic_cache/issues
+- Use GitHub Discussions for community discussions at
+  https://github.com/pgedge/pg_semantic_cache/discussions

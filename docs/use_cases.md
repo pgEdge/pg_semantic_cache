@@ -5,20 +5,23 @@ pg_semantic_cache extension in real-world applications.
 
 ## LLM and AI Applications
 
-This section demonstrates how to use the pg_semantic_cache extension to
-optimize costs and performance in LLM and AI-powered applications.
+The following sections demonstrate how to use the pg_semantic_cache extension
+to optimize costs and performance in LLM and AI-powered applications.
 
 ### RAG (Retrieval Augmented Generation) Caching
 
-The RAG caching pattern addresses the challenge of expensive LLM API calls by
-caching responses based on semantic similarity of user questions.
+The RAG caching pattern addresses the challenge of expensive LLM API
+calls by caching responses based on semantic similarity of user
+questions.
 
-LLM API calls typically cost between $0.02 and $0.05 per request, and users
-often ask similar questions using different wording. The pg_semantic_cache
-extension solves this problem by caching LLM responses with semantic matching.
+LLM API calls typically cost between $0.02 and $0.05 per request, and
+users often ask similar questions using different wording. The
+pg_semantic_cache extension solves this problem by caching LLM
+responses with semantic matching.
 
-In the following example, the `SemanticLLMCache` class uses the OpenAI API to
-generate embeddings and cache LLM responses based on semantic similarity.
+In the following example, the `SemanticLLMCache` class uses the
+OpenAI API to generate embeddings and cache LLM responses based on
+semantic similarity.
 
 ```python
 import openai
@@ -95,14 +98,15 @@ cache.ask_llm_cached("Show me Q4 revenue")     # Cache hit!
 cache.ask_llm_cached("Q4 revenue please")      # Cache hit!
 ```
 
-An organization processing 10,000 daily queries with an 80% cache hit rate
-can save approximately $140 per day or $51,100 per year using this approach.
+An organization processing 10,000 daily queries with an 80% cache hit
+rate can save approximately $140 per day or $51,100 per year using this
+approach.
 
 ### Chatbot Response Caching
 
 The chatbot response caching pattern optimizes conversational AI
-applications by storing and reusing responses for semantically similar
-user messages.
+applications by storing and reusing responses for semantically
+similar user messages.
 
 In the following example, the `ChatbotCache` class uses TypeScript to
 implement a caching layer for chatbot responses with configurable
@@ -178,8 +182,8 @@ class ChatbotCache {
 
 ## Analytics and Reporting
 
-This section demonstrates how to use the pg_semantic_cache extension to
-improve performance of analytical queries and reporting workloads.
+This section demonstrates how to use the pg_semantic_cache extension
+to improve performance of analytical queries and reporting workloads.
 
 ### Dashboard Query Caching
 
@@ -187,9 +191,9 @@ The dashboard query caching pattern reduces latency for expensive
 analytical queries that power business intelligence dashboards and
 reporting tools.
 
-In the following example, the `app.get_sales_analytics` function uses
-a deterministic embedding to cache analytics results for a configurable
-TTL period.
+In the following example, the `app.get_sales_analytics` function
+uses a deterministic embedding to cache analytics results for a
+configurable TTL period.
 
 ```sql
 -- Application caching wrapper for analytics
@@ -271,11 +275,12 @@ SELECT app.get_sales_analytics(
 ### Time-Series Report Caching
 
 The time-series report caching pattern optimizes recurring reports by
-adjusting cache TTL based on the temporal granularity of the data being
-reported.
+adjusting cache TTL based on the temporal granularity of the data
+being reported.
 
-In the following example, the `app.cached_time_series_report` function
-uses different TTL values for daily, weekly, and monthly reports.
+In the following example, the `app.cached_time_series_report`
+function uses different TTL values for daily, weekly, and monthly
+reports.
 
 ```sql
 -- Cache daily/weekly/monthly reports
@@ -331,14 +336,15 @@ $$ LANGUAGE plpgsql;
 
 ## External API Results
 
-This section demonstrates how to use the pg_semantic_cache extension to
-reduce costs and latency when integrating with third-party external APIs.
+This section demonstrates how to use the pg_semantic_cache extension
+to reduce costs and latency when integrating with third-party
+external APIs.
 
 ### Third-Party API Response Caching
 
 The external API caching pattern stores responses from expensive
-third-party APIs such as weather services, geocoding providers, and stock
-price feeds.
+third-party APIs such as weather services, geocoding providers, and
+stock price feeds.
 
 In the following example, the `APICache` class uses the
 sentence-transformers library to generate embeddings and cache API
@@ -397,8 +403,9 @@ class APICache:
         return api_response
 ```
 
-The following examples demonstrate how to use the `APICache` class with
-different external APIs using appropriate TTL values for each use case.
+The following examples demonstrate how to use the `APICache` class
+with different external APIs using appropriate TTL values for each
+use case.
 
 ```python
 # Weather API
@@ -434,18 +441,19 @@ def get_stock_price(symbol):
 
 ## Database Query Optimization
 
-This section demonstrates how to use the pg_semantic_cache extension to
-optimize expensive database queries and reduce computational overhead.
+This section demonstrates how to use the pg_semantic_cache extension
+to optimize expensive database queries and reduce computational
+overhead.
 
 ### Expensive Join Caching
 
-The expensive join caching pattern stores results from complex multi-table
-joins to avoid repeated execution of resource-intensive database
-operations.
+The expensive join caching pattern stores results from complex
+multi-table joins to avoid repeated execution of resource-intensive
+database operations.
 
-In the following example, the `app.get_customer_summary` function caches
-the results of a complex customer data aggregation query with multiple
-joins.
+In the following example, the `app.get_customer_summary` function
+caches the results of a complex customer data aggregation query with
+multiple joins.
 
 ```sql
 -- Wrap expensive queries with semantic caching
@@ -525,14 +533,15 @@ SELECT app.get_customer_summary('john');
 
 ## Scheduled Maintenance
 
-This section demonstrates how to implement automated maintenance routines
-for the pg_semantic_cache extension to ensure optimal performance and
-storage use.
+This section demonstrates how to implement automated maintenance
+routines for the pg_semantic_cache extension to ensure optimal
+performance and storage use.
 
 ### Automatic Cache Cleanup
 
-The automatic cache cleanup pattern uses scheduled maintenance functions
-to evict expired entries and optimize cache storage on a regular basis.
+The automatic cache cleanup pattern uses scheduled maintenance
+functions to evict expired entries and optimize cache storage on a
+regular basis.
 
 In the following example, the `semantic_cache.scheduled_maintenance`
 function performs multiple maintenance operations and returns timing
@@ -591,12 +600,13 @@ SELECT * FROM semantic_cache.scheduled_maintenance();
 
 ### Cache Warming
 
-The cache warming pattern pre-populates the cache with common queries to
-improve application performance during startup or after cache
+The cache warming pattern pre-populates the cache with common queries
+to improve application performance during startup or after cache
 invalidation.
 
 In the following example, the `app.warm_cache` function pre-caches
-frequently accessed dashboard queries to reduce initial page load times.
+frequently accessed dashboard queries to reduce initial page load
+times.
 
 ```sql
 -- Warm cache with popular queries
@@ -630,19 +640,19 @@ SELECT app.warm_cache();
 
 ## Multi-Language Support
 
-This section demonstrates how to use the pg_semantic_cache extension to
-support caching across multiple languages using multilingual embedding
-models.
+This section demonstrates how to use the pg_semantic_cache extension
+to support caching across multiple languages using multilingual
+embedding models.
 
 ### Caching Across Languages
 
 The multilingual caching pattern enables cache hits across different
-languages by using multilingual embedding models that map semantically
-similar queries.
+languages by using multilingual embedding models that map
+semantically similar queries.
 
 In the following example, the `MultilingualCache` class uses the
-multilingual mpnet model to cache queries across English, Spanish, French,
-and Portuguese.
+multilingual mpnet model to cache queries across English, Spanish,
+French, and Portuguese.
 
 ```python
 from sentence_transformers import SentenceTransformer

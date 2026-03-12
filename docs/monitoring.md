@@ -1,15 +1,21 @@
 # Monitoring
 
-Comprehensive guide to monitoring and optimizing pg_semantic_cache performance.
+This guide provides comprehensive information about monitoring and
+optimizing pg_semantic_cache performance.
 
 ## Quick Health Check
 
+The following sections describe how to perform a quick health check on
+your semantic cache.
+
+In the following example, the `cache_health` view provides an overview
+of cache performance metrics:
+
 ```sql
--- View overall cache health
 SELECT * FROM semantic_cache.cache_health;
 ```
 
-**Sample Output:**
+The query produces output similar to the following example:
 ```
  total_entries | expired_entries | total_size | avg_access_count | total_hits | total_misses | hit_rate_pct
 ---------------+-----------------+------------+------------------+------------+--------------+--------------
@@ -18,9 +24,16 @@ SELECT * FROM semantic_cache.cache_health;
 
 ## Key Metrics
 
-### 1. Cache Hit Rate
+The following sections describe the key metrics for monitoring cache
+performance and effectiveness.
 
-The most important metric for cache effectiveness.
+### Cache Hit Rate
+
+The cache hit rate is the most important metric for measuring cache
+effectiveness.
+
+In the following example, the query calculates the current hit rate
+with a rating based on performance thresholds:
 
 ```sql
 -- Get current hit rate
@@ -30,26 +43,30 @@ SELECT
     (total_hits + total_misses) as total_queries,
     hit_rate_percent,
     CASE
-        WHEN hit_rate_percent >= 80 THEN '🟢 Excellent'
-        WHEN hit_rate_percent >= 60 THEN '🟡 Good'
-        WHEN hit_rate_percent >= 40 THEN '🟠 Fair'
-        ELSE '🔴 Poor'
+        WHEN hit_rate_percent >= 80 THEN 'Excellent'
+        WHEN hit_rate_percent >= 60 THEN 'Good'
+        WHEN hit_rate_percent >= 40 THEN 'Fair'
+        ELSE 'Poor'
     END as rating
 FROM semantic_cache.cache_stats();
 ```
 
-**Target Hit Rates:**
-- LLM/AI: 70-85%
-- Analytics: 60-75%
-- API Caching: 75-90%
-- Real-time Data: 40-60%
+The following list shows target hit rates for different use cases:
 
-### 2. Cache Size and Growth
+- LLM and AI applications should achieve 70 to 85 percent hit rates.
+- Analytics workloads should achieve 60 to 75 percent hit rates.
+- API caching should achieve 75 to 90 percent hit rates.
+- Real-time data should achieve 40 to 60 percent hit rates.
 
-Monitor storage usage and growth trends.
+### Cache Size and Growth
+
+The cache size and growth metrics help you monitor storage usage and
+identify growth trends.
+
+In the following example, the query calculates the current cache size
+and entry count statistics:
 
 ```sql
--- Current size and entry count
 SELECT
     COUNT(*) as total_entries,
     pg_size_pretty(SUM(result_size_bytes)::BIGINT) as total_size,
@@ -59,38 +76,41 @@ SELECT
 FROM semantic_cache.cache_entries;
 ```
 
-**Track Growth:**
+In the following example, the queries create a tracking table and log
+cache size over time to identify growth trends:
+
 ```sql
--- Create size tracking table
 CREATE TABLE IF NOT EXISTS monitoring.cache_size_history (
     timestamp TIMESTAMPTZ DEFAULT NOW(),
     entry_count BIGINT,
     total_bytes BIGINT
 );
-
--- Log current size
 INSERT INTO monitoring.cache_size_history (entry_count, total_bytes)
 SELECT COUNT(*), SUM(result_size_bytes)
 FROM semantic_cache.cache_entries;
 
--- View growth trend
 SELECT
     timestamp,
     entry_count,
     pg_size_pretty(total_bytes) as size,
-    entry_count - LAG(entry_count) OVER (ORDER BY timestamp) as entry_delta,
-    pg_size_pretty((total_bytes - LAG(total_bytes) OVER (ORDER BY timestamp))::BIGINT) as size_delta
+    entry_count - LAG(entry_count) OVER (ORDER BY timestamp)
+        as entry_delta,
+    pg_size_pretty((total_bytes - LAG(total_bytes)
+        OVER (ORDER BY timestamp))::BIGINT) as size_delta
 FROM monitoring.cache_size_history
 ORDER BY timestamp DESC
 LIMIT 20;
 ```
 
-### 3. Access Patterns
+### Access Patterns
 
-Understand which entries are most valuable.
+The access pattern metrics help you understand which cache entries are
+most valuable to your application.
+
+In the following example, the query identifies the most frequently
+accessed cache entries:
 
 ```sql
--- Most accessed entries
 SELECT
     id,
     LEFT(query_text, 60) as query_preview,
@@ -104,9 +124,10 @@ ORDER BY access_count DESC
 LIMIT 20;
 ```
 
-**Access Distribution:**
+In the following example, the query groups cache entries by access
+frequency to show the distribution of cache usage:
+
 ```sql
--- Group entries by access frequency
 SELECT
     CASE
         WHEN access_count = 0 THEN '0 (Never)'
@@ -123,12 +144,15 @@ GROUP BY 1
 ORDER BY 1;
 ```
 
-### 4. Entry Age and Freshness
+### Entry Age and Freshness
 
-Monitor how old cached entries are.
+The entry age metrics help you monitor how old cached entries are and
+identify stale data.
+
+In the following example, the query groups cache entries by age to
+show the distribution of entry freshness:
 
 ```sql
--- Age distribution
 SELECT
     CASE
         WHEN age_minutes < 5 THEN '< 5 min'
@@ -152,51 +176,71 @@ ORDER BY 1;
 
 ## Built-in Monitoring Views
 
+The extension provides several built-in views for monitoring cache
+performance and health.
+
 ### cache_health
 
-Real-time cache health metrics.
+The `cache_health` view provides real-time cache health metrics.
+
+In the following example, the query retrieves the current cache health
+status:
 
 ```sql
 SELECT * FROM semantic_cache.cache_health;
 ```
 
-Includes:
-- Total entries and expired entries
-- Total cache size
-- Average access count
-- Hit/miss statistics
-- Hit rate percentage
+The view includes:
+
+- the total entries and expired entries.
+- the total cache size in megabytes.
+- the average access count per entry.
+- hit and miss statistics.
+- the hit rate percentage.
 
 ### recent_cache_activity
 
-Most recently accessed entries.
+The `recent_cache_activity` view shows the most recently accessed cache
+entries.
+
+In the following example, the query retrieves the ten most recently
+accessed cache entries:
 
 ```sql
 SELECT * FROM semantic_cache.recent_cache_activity LIMIT 10;
 ```
 
-Shows:
-- Query preview (first 80 chars)
-- Access count
-- Timestamps (created, last accessed, expires)
-- Result size
+The view shows:
+
+- a query preview with the first 80 characters.
+- the access count for each entry.
+- timestamps for creation, last access, and expiration.
+- the result size in bytes.
 
 ### cache_by_tag
 
-Entries grouped by tag.
+The `cache_by_tag` view shows cache entries grouped by tag.
+
+In the following example, the query retrieves cache statistics grouped
+by tag:
 
 ```sql
 SELECT * FROM semantic_cache.cache_by_tag;
 ```
 
-Useful for:
-- Understanding cache composition
-- Identifying which features use cache most
-- Targeted invalidation planning
+The view is useful for:
+
+- understanding cache composition by feature.
+- identifying which features use the cache most.
+- planning targeted invalidation strategies.
 
 ### cache_access_summary
 
-Hourly access statistics with cost savings.
+The `cache_access_summary` view provides hourly access statistics with
+cost savings information.
+
+In the following example, the query retrieves hourly access statistics
+for the last 24 hours:
 
 ```sql
 SELECT * FROM semantic_cache.cache_access_summary
@@ -206,7 +250,11 @@ LIMIT 24;
 
 ### cost_savings_daily
 
-Daily cost savings breakdown.
+The `cost_savings_daily` view provides a daily breakdown of cost
+savings from cache hits.
+
+In the following example, the query retrieves daily cost savings for
+the last 30 days:
 
 ```sql
 SELECT * FROM semantic_cache.cost_savings_daily
@@ -216,7 +264,11 @@ LIMIT 30;
 
 ### top_cached_queries
 
-Top queries by cost savings.
+The `top_cached_queries` view shows the queries that provide the
+greatest cost savings.
+
+In the following example, the query retrieves the ten queries with the
+highest cost savings:
 
 ```sql
 SELECT * FROM semantic_cache.top_cached_queries
@@ -225,26 +277,33 @@ LIMIT 10;
 
 ## Performance Monitoring
 
+The following sections describe how to monitor cache performance and
+optimize query execution.
+
 ### Query Performance
 
-Track how fast cache lookups are.
+The query performance metrics help you track how fast cache lookups
+execute.
+
+In the following example, the timing is enabled and a cache lookup is
+tested with a random embedding vector:
 
 ```sql
--- Enable timing
 \timing on
 
--- Test lookup speed
 SELECT * FROM semantic_cache.get_cached_result(
-    (SELECT array_agg(random()::float4)::text FROM generate_series(1, 1536)),
+    (SELECT array_agg(random()::float4)::text
+     FROM generate_series(1, 1536)),
     0.95
 );
-
--- Expected: < 5ms
 ```
 
-**Benchmarking:**
+Target performance is less than 5ms for most queries.
+
+In the following example, the benchmark code measures average cache
+lookup time over 100 iterations:
+
 ```sql
--- Benchmark cache lookups
 DO $$
 DECLARE
     start_time TIMESTAMPTZ;
@@ -266,16 +325,20 @@ BEGIN
     end_time := clock_timestamp();
 
     RAISE NOTICE 'Average lookup time: % ms',
-        ROUND((EXTRACT(MILLISECONDS FROM (end_time - start_time)) / 100)::NUMERIC, 2);
+        ROUND((EXTRACT(MILLISECONDS FROM (end_time - start_time))
+            / 100)::NUMERIC, 2);
 END $$;
 ```
 
 ### Index Performance
 
-Monitor vector index effectiveness.
+The index performance metrics help you monitor vector index
+effectiveness and usage.
+
+In the following example, the query checks index usage statistics for
+the semantic cache schema:
 
 ```sql
--- Check index usage
 SELECT
     schemaname,
     tablename,
@@ -289,16 +352,18 @@ WHERE schemaname = 'semantic_cache'
 ORDER BY idx_scan DESC;
 ```
 
-**Index Statistics:**
+In the following example, the query retrieves detailed index
+statistics including tuples per scan:
+
 ```sql
--- Detailed index info
 SELECT
     i.indexrelname as index_name,
     t.tablename as table_name,
     pg_size_pretty(pg_relation_size(i.indexrelid)) as index_size,
     idx_scan as scans,
     idx_tup_read as tuples_read,
-    ROUND(idx_tup_read::NUMERIC / NULLIF(idx_scan, 0), 2) as tuples_per_scan
+    ROUND(idx_tup_read::NUMERIC / NULLIF(idx_scan, 0), 2)
+        as tuples_per_scan
 FROM pg_stat_user_indexes i
 JOIN pg_stat_user_tables t ON i.relid = t.relid
 WHERE i.schemaname = 'semantic_cache';
@@ -306,8 +371,13 @@ WHERE i.schemaname = 'semantic_cache';
 
 ### PostgreSQL Statistics
 
+The PostgreSQL statistics views provide detailed information about
+table and index operations.
+
+In the following example, the query retrieves table statistics for the
+semantic cache schema:
+
 ```sql
--- Table statistics
 SELECT
     schemaname,
     tablename,
@@ -326,10 +396,18 @@ WHERE schemaname = 'semantic_cache';
 
 ## Alerting
 
+The following sections describe how to set up automated alerts for
+cache health monitoring.
+
 ### Set Up Alerts
 
+The alert function monitors cache health and returns warnings when
+metrics fall outside acceptable ranges.
+
+In the following example, the function creates a monitoring alert
+system that checks for common cache health issues:
+
 ```sql
--- Create alert function
 CREATE OR REPLACE FUNCTION monitoring.check_cache_alerts()
 RETURNS TABLE(
     alert_level TEXT,
@@ -338,7 +416,6 @@ RETURNS TABLE(
     metric_value NUMERIC
 ) AS $$
 BEGIN
-    -- Alert: Low hit rate
     RETURN QUERY
     SELECT
         'WARNING'::TEXT,
@@ -348,7 +425,6 @@ BEGIN
     FROM semantic_cache.cache_stats()
     WHERE hit_rate_percent < 60;
 
-    -- Alert: Cache too large
     RETURN QUERY
     SELECT
         'WARNING'::TEXT,
@@ -356,9 +432,8 @@ BEGIN
         'Cache size exceeding 80% of limit'::TEXT,
         (SUM(result_size_bytes) / 1024 / 1024)::NUMERIC
     FROM semantic_cache.cache_entries
-    HAVING SUM(result_size_bytes) / 1024 / 1024 > 800;  -- If max is 1000MB
+    HAVING SUM(result_size_bytes) / 1024 / 1024 > 800;
 
-    -- Alert: Too many expired entries
     RETURN QUERY
     SELECT
         'INFO'::TEXT,
@@ -367,9 +442,9 @@ BEGIN
         COUNT(*)::NUMERIC
     FROM semantic_cache.cache_entries
     WHERE expires_at <= NOW()
-    HAVING COUNT(*) > (SELECT COUNT(*) * 0.1 FROM semantic_cache.cache_entries);
+    HAVING COUNT(*) > (SELECT COUNT(*) * 0.1
+                       FROM semantic_cache.cache_entries);
 
-    -- Alert: No activity
     RETURN QUERY
     SELECT
         'CRITICAL'::TEXT,
@@ -378,33 +453,38 @@ BEGIN
         0::NUMERIC
     FROM semantic_cache.cache_entries
     WHERE last_accessed_at < NOW() - INTERVAL '1 hour'
-    HAVING COUNT(*) = (SELECT COUNT(*) FROM semantic_cache.cache_entries);
+    HAVING COUNT(*) = (SELECT COUNT(*)
+                       FROM semantic_cache.cache_entries);
 END;
 $$ LANGUAGE plpgsql;
 
--- Check for alerts
 SELECT * FROM monitoring.check_cache_alerts();
 ```
 
 ### Schedule Alert Checks
 
+You can use pg_cron to schedule regular alert checks and notifications.
+
+In the following example, the pg_cron schedule checks for cache alerts
+every 15 minutes:
+
 ```sql
--- With pg_cron (if available)
 SELECT cron.schedule(
     'cache-alerts',
-    '*/15 * * * *',  -- Every 15 minutes
+    '*/15 * * * *',
     $$
     DO $$
     DECLARE
         alert RECORD;
     BEGIN
-        FOR alert IN SELECT * FROM monitoring.check_cache_alerts() LOOP
+        FOR alert IN
+            SELECT * FROM monitoring.check_cache_alerts()
+        LOOP
             RAISE WARNING '[%] %: % (value: %)',
                 alert.alert_level,
                 alert.alert_type,
                 alert.message,
                 alert.metric_value;
-            -- Add your notification logic here (email, Slack, etc.)
         END LOOP;
     END $$;
     $$
@@ -413,12 +493,18 @@ SELECT cron.schedule(
 
 ## Integration with Monitoring Tools
 
-### Prometheus/Grafana
+The following sections describe how to integrate cache metrics with
+external monitoring tools.
 
-Export metrics in Prometheus format.
+### Prometheus and Grafana
+
+You can export cache metrics in Prometheus format for visualization in
+Grafana.
+
+In the following example, the function exports cache statistics in
+Prometheus text format:
 
 ```sql
--- Create metrics export function
 CREATE OR REPLACE FUNCTION monitoring.prometheus_metrics()
 RETURNS TEXT AS $$
 DECLARE
@@ -427,31 +513,43 @@ DECLARE
 BEGIN
     SELECT * INTO stats FROM semantic_cache.cache_stats();
 
-    result := result || '# HELP cache_entries_total Total number of cached entries' || E'\n';
+    result := result || '# HELP cache_entries_total Total entries'
+           || E'\n';
     result := result || '# TYPE cache_entries_total gauge' || E'\n';
-    result := result || 'cache_entries_total ' || stats.total_entries || E'\n';
+    result := result || 'cache_entries_total ' || stats.total_entries
+           || E'\n';
 
-    result := result || '# HELP cache_hits_total Total cache hits' || E'\n';
+    result := result || '# HELP cache_hits_total Total cache hits'
+           || E'\n';
     result := result || '# TYPE cache_hits_total counter' || E'\n';
     result := result || 'cache_hits_total ' || stats.total_hits || E'\n';
 
-    result := result || '# HELP cache_misses_total Total cache misses' || E'\n';
+    result := result || '# HELP cache_misses_total Total cache misses'
+           || E'\n';
     result := result || '# TYPE cache_misses_total counter' || E'\n';
-    result := result || 'cache_misses_total ' || stats.total_misses || E'\n';
+    result := result || 'cache_misses_total ' || stats.total_misses
+           || E'\n';
 
-    result := result || '# HELP cache_hit_rate Cache hit rate percentage' || E'\n';
+    result := result || '# HELP cache_hit_rate Cache hit rate percent'
+           || E'\n';
     result := result || '# TYPE cache_hit_rate gauge' || E'\n';
-    result := result || 'cache_hit_rate ' || stats.hit_rate_percent || E'\n';
+    result := result || 'cache_hit_rate ' || stats.hit_rate_percent
+           || E'\n';
 
     RETURN result;
 END;
 $$ LANGUAGE plpgsql;
 
--- Export metrics
 SELECT monitoring.prometheus_metrics();
 ```
 
 ### Application Logging
+
+You can integrate cache metrics into your application logging and
+monitoring infrastructure.
+
+In the following example, the Python code logs cache metrics to
+application logs and optionally sends them to a metrics service:
 
 ```python
 import psycopg2
@@ -468,118 +566,149 @@ def log_cache_metrics():
     stats = cur.fetchone()
 
     logger.info(
-        "Cache Stats - Entries: %d, Hits: %d, Misses: %d, Hit Rate: %.2f%%",
+        "Cache Stats - Entries: %d, Hits: %d, Misses: %d, " +
+        "Hit Rate: %.2f%%",
         stats[0], stats[1], stats[2], stats[3]
     )
-
-    # Also log to metrics service (DataDog, New Relic, etc.)
-    # metrics.gauge('cache.entries', stats[0])
-    # metrics.counter('cache.hits', stats[1])
-    # metrics.counter('cache.misses', stats[2])
-    # metrics.gauge('cache.hit_rate', stats[3])
 ```
 
 ## Optimization Guidelines
 
-### When Hit Rate is Low (< 60%)
+The following sections provide guidelines for optimizing cache
+performance based on common issues.
 
-1. **Lower similarity threshold**
-   ```sql
-   -- Try 0.90 instead of 0.95
-   SELECT * FROM semantic_cache.get_cached_result('[...]'::text, 0.90);
-   ```
+### When Hit Rate is Low
 
-2. **Check TTL settings**
-   ```sql
-   -- Entries expiring too quickly?
-   SELECT COUNT(*), AVG(EXTRACT(EPOCH FROM (expires_at - created_at)))
-   FROM semantic_cache.cache_entries
-   WHERE expires_at IS NOT NULL;
-   ```
+If your cache hit rate is below 60 percent, use the following
+optimization strategies.
 
-3. **Verify embedding quality**
-   ```sql
-   -- Look at similarity scores
-   SELECT
-       query_text,
-       (1 - (query_embedding <=> (SELECT query_embedding FROM semantic_cache.cache_entries LIMIT 1))) as similarity
-   FROM semantic_cache.cache_entries
-   ORDER BY similarity DESC
-   LIMIT 10;
-   ```
+In the following example, the similarity threshold is lowered to 0.90
+to allow more cache hits:
+
+```sql
+SELECT * FROM semantic_cache.get_cached_result('[...]'::text, 0.90);
+```
+
+In the following example, the query checks if entries are expiring too
+quickly by calculating the average TTL:
+
+```sql
+SELECT COUNT(*), AVG(EXTRACT(EPOCH FROM (expires_at - created_at)))
+FROM semantic_cache.cache_entries
+WHERE expires_at IS NOT NULL;
+```
+
+In the following example, the query examines similarity scores to
+verify embedding quality:
+
+```sql
+SELECT
+    query_text,
+    (1 - (query_embedding <=>
+          (SELECT query_embedding
+           FROM semantic_cache.cache_entries
+           LIMIT 1))) as similarity
+FROM semantic_cache.cache_entries
+ORDER BY similarity DESC
+LIMIT 10;
+```
 
 ### When Cache Size is Growing Too Fast
 
-1. **Reduce TTL**
-   ```sql
-   -- Cache for shorter periods
-   UPDATE semantic_cache.cache_config
-   SET value = '1800'  -- 30 minutes instead of 1 hour
-   WHERE key = 'default_ttl_seconds';
-   ```
+If your cache is growing faster than expected, use the following
+optimization strategies.
 
-2. **Enable aggressive eviction**
-   ```sql
-   -- Lower max size
-   UPDATE semantic_cache.cache_config
-   SET value = '500'
-   WHERE key = 'max_cache_size_mb';
+In the following example, the TTL is reduced to 30 minutes to expire
+entries more quickly:
 
-   -- Run auto-eviction
-   SELECT semantic_cache.auto_evict();
-   ```
+```sql
+UPDATE semantic_cache.cache_config
+SET value = '1800'
+WHERE key = 'default_ttl_seconds';
+```
 
-3. **Remove low-value entries**
-   ```sql
-   -- Delete entries with 0 accesses older than 1 hour
-   DELETE FROM semantic_cache.cache_entries
-   WHERE access_count = 0
-     AND created_at < NOW() - INTERVAL '1 hour';
-   ```
+In the following example, the maximum cache size is reduced and
+auto-eviction is triggered:
 
-### When Lookups are Slow (> 10ms)
+```sql
+UPDATE semantic_cache.cache_config
+SET value = '500'
+WHERE key = 'max_cache_size_mb';
 
-1. **Rebuild index with more lists** (for IVFFlat)
-   ```sql
-   DROP INDEX semantic_cache.idx_cache_entries_embedding;
-   CREATE INDEX idx_cache_entries_embedding
-   ON semantic_cache.cache_entries
-   USING ivfflat (query_embedding vector_cosine_ops)
-   WITH (lists = 1000);
-   ```
+SELECT semantic_cache.auto_evict();
+```
 
-2. **Consider HNSW index**
-   ```sql
-   SELECT semantic_cache.set_index_type('hnsw');
-   SELECT semantic_cache.rebuild_index();
-   ```
+In the following example, entries with zero accesses that are older
+than one hour are deleted:
 
-3. **Increase work_mem**
-   ```sql
-   -- In postgresql.conf or session
-   SET work_mem = '512MB';
-   ```
+```sql
+DELETE FROM semantic_cache.cache_entries
+WHERE access_count = 0
+  AND created_at < NOW() - INTERVAL '1 hour';
+```
+
+### When Lookups are Slow
+
+If cache lookups are taking more than 10ms, use the following
+optimization strategies.
+
+In the following example, the IVFFlat index is rebuilt with more lists
+for better performance on larger caches:
+
+```sql
+DROP INDEX semantic_cache.idx_cache_entries_embedding;
+CREATE INDEX idx_cache_entries_embedding
+ON semantic_cache.cache_entries
+USING ivfflat (query_embedding vector_cosine_ops)
+WITH (lists = 1000);
+```
+
+In the following example, the index type is switched to HNSW for
+better query performance:
+
+```sql
+SELECT semantic_cache.set_index_type('hnsw');
+SELECT semantic_cache.rebuild_index();
+```
+
+In the following example, the work_mem setting is increased to provide
+more memory for vector operations:
+
+```sql
+SET work_mem = '512MB';
+```
 
 ## Regular Maintenance Checklist
 
-Daily:
-- [ ] Check hit rate: `SELECT * FROM semantic_cache.cache_stats()`
-- [ ] Review cache size: `SELECT * FROM semantic_cache.cache_health`
-- [ ] Clear expired: `SELECT semantic_cache.evict_expired()`
+The following checklist provides recommended maintenance tasks at
+different intervals.
 
-Weekly:
-- [ ] Review top queries: `SELECT * FROM semantic_cache.recent_cache_activity`
-- [ ] Check for alerts: `SELECT * FROM monitoring.check_cache_alerts()`
-- [ ] Analyze tables: `ANALYZE semantic_cache.cache_entries`
+Daily tasks include:
 
-Monthly:
-- [ ] Review configuration settings
-- [ ] Optimize index if needed
-- [ ] Archive old access logs
-- [ ] Review cost savings: `SELECT * FROM semantic_cache.get_cost_savings(30)`
+- checking the hit rate with `cache_stats` function.
+- reviewing the cache size with `cache_health` view.
+- clearing expired entries with `evict_expired` function.
+
+Weekly tasks include:
+
+- reviewing top queries with `recent_cache_activity` view.
+- checking for alerts with `check_cache_alerts` function.
+- analyzing tables with the ANALYZE command.
+
+Monthly tasks include:
+
+- reviewing configuration settings for optimization opportunities.
+- optimizing the index if needed based on cache size.
+- archiving old access logs to prevent table bloat.
+- reviewing cost savings with `get_cost_savings` function.
 
 ## See Also
 
-- [Functions Reference](functions/index.md) - All monitoring functions
-- [Configuration](configuration.md) - Tuning parameters
-- [Use Cases](use_cases.md) - Monitoring patterns in practice
+The following resources provide additional information:
+
+- the [Functions Reference](functions/index.md) document describes all
+  monitoring functions.
+- the [Configuration](configuration.md) document explains tuning
+  parameters.
+- the [Use Cases](use_cases.md) document provides monitoring patterns
+  in practice.
