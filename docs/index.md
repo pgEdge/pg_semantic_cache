@@ -65,4 +65,3 @@ The following table shows the platform support status:
 | macOS | Supported | Intel & Apple Silicon |
 | Windows | Supported | Via MinGW or MSVC |
 | BSD | Supported | FreeBSD, OpenBSD |
-

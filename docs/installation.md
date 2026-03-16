@@ -82,7 +82,7 @@ standard PostgreSQL extension build commands:
 
 ```bash
 # Clone the repository
-git clone https://github.com/pgedge/pg_semantic_cache.git
+git clone https://github.com/pgEdge/pg_semantic_cache.git
 cd pg_semantic_cache
 
 # Build
@@ -165,7 +165,7 @@ Expected output:
       extname       | extversion
 --------------------+------------
  vector             | 0.7.0
- pg_semantic_cache  | 0.1.0-beta3
+ pg_semantic_cache  | 0.1.0-beta4
 ```
 
 ### Verifying Schema Creation
