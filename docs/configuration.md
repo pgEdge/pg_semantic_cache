@@ -1,12 +1,24 @@
 # Configuration
 
-pg_semantic_cache provides flexible configuration options for vector dimensions, index types, and cache behavior.
+This guide describes how to configure pg_semantic_cache for your use
+case, including vector dimensions, index types, and cache behavior.
+
+!!! tip "Start Simple"
+
+    When configuring semantic caching, begin with simple defaults such
+    as 1536 dimensions, IVFFlat index, and 0.95 threshold, and adjust
+    your system based on monitoring.
+
+!!! warning "Test Before Production"
+
+    Always test configuration changes in development before applying to
+    production!
 
 ## Vector Dimensions
 
-The extension supports configurable embedding dimensions to match your chosen embedding model.
-
-### Supported Dimensions
+The extension supports configurable embedding dimensions to match
+your chosen embedding model. The pg_semantic_cache extension supports
+the following dimensions and associated models:
 
 | Dimension | Common Models |
 |-----------|---------------|
@@ -19,91 +31,97 @@ The extension supports configurable embedding dimensions to match your chosen em
 ### Setting Dimensions
 
 !!! warning "Rebuild Required"
-    Changing dimensions requires rebuilding the index, which **clears all cached data**.
+
+    Changing dimensions requires rebuilding the index, which clears
+    all cached data.
+
+In the following example, the `set_vector_dimension` function changes
+the vector dimension to 768, and the `rebuild_index` function applies
+the change:
 
 ```sql
--- Set vector dimension (default: 1536)
 SELECT semantic_cache.set_vector_dimension(768);
-
--- Rebuild index to apply changes (WARNING: clears cache)
 SELECT semantic_cache.rebuild_index();
-
--- Verify new dimension
 SELECT semantic_cache.get_vector_dimension();
 ```
 
-### Initial Setup for Custom Dimensions
+### Initial Setup For Custom Dimensions
 
-If you know your embedding model before installation:
+If you know your embedding model before installation, configure the
+dimensions immediately after creating the extension.
+
+In the following example, the dimensions are set to 768 right after
+creating the extension:
 
 ```sql
--- Right after CREATE EXTENSION
 CREATE EXTENSION pg_semantic_cache;
-
--- Immediately configure dimensions
 SELECT semantic_cache.set_vector_dimension(768);
 SELECT semantic_cache.rebuild_index();
-
--- Now start caching
 ```
 
 ## Vector Index Types
 
-Choose between IVFFlat (fast, approximate) or HNSW (accurate, slower build).
+Choose between IVFFlat for fast approximate searches or HNSW for
+accurate searches with slower build times.
 
 ### IVFFlat Index (Default)
 
-Best for most use cases - fast lookups with good recall.
+The IVFFlat index is best for most use cases and provides fast
+lookups with good recall.
 
-**Characteristics:**
-- **Lookup Speed**: Very fast (< 5ms typical)
-- **Build Time**: Fast
-- **Recall**: Good (95%+)
-- **Memory**: Moderate
-- **Best For**: Production caches with frequent updates
+The index provides:
+
+- very fast lookups (typically under 5ms).
+- fast build times.
+- excellent recall (95% or higher).
+- moderate memory usage.
+
+This index is best for production caches with frequent updates.
+
+In the following example, the `set_index_type` function sets the
+index type to IVFFlat:
 
 ```sql
--- Set index type
 SELECT semantic_cache.set_index_type('ivfflat');
 SELECT semantic_cache.rebuild_index();
 ```
 
-**IVFFlat Parameters** (set during `init_schema()`):
+In the following example, the IVFFlat index is configured with 1000
+lists for caches with 100K to 1M entries:
 
 ```sql
--- Default configuration
-lists = 100  -- For < 100K entries
-
--- For larger caches, increase lists
--- Adjust in the init_schema() function or manually:
 DROP INDEX IF EXISTS semantic_cache.idx_cache_entries_embedding;
 CREATE INDEX idx_cache_entries_embedding
 ON semantic_cache.cache_entries
 USING ivfflat (query_embedding vector_cosine_ops)
-WITH (lists = 1000);  -- For 100K-1M entries
+WITH (lists = 1000);
 ```
 
 ### HNSW Index
 
-More accurate but slower to build - requires pgvector 0.5.0+.
+The HNSW index is more accurate but slower to build and requires
+pgvector 0.5.0 or later.
 
-**Characteristics:**
-- **Lookup Speed**: Fast (1-3ms typical)
-- **Build Time**: Slower
-- **Recall**: Excellent (98%+)
-- **Memory**: Higher
-- **Best For**: Read-heavy caches with infrequent updates
+Characteristics include the following:
+
+- Lookup Speed is fast at 1-3ms typically.
+- Build Time is slower.
+- Recall is excellent at 98% or higher.
+- Memory usage is higher.
+- Best For read-heavy caches with infrequent updates.
+
+In the following example, the `set_index_type` function sets the
+index type to HNSW:
 
 ```sql
--- Set index type (requires pgvector 0.5.0+)
 SELECT semantic_cache.set_index_type('hnsw');
 SELECT semantic_cache.rebuild_index();
 ```
 
-**HNSW Parameters:**
+In the following example, the HNSW index is configured with `m=16` and
+`ef_construction=64` for optimal performance:
 
 ```sql
--- Adjust manually for optimal performance
 DROP INDEX IF EXISTS semantic_cache.idx_cache_entries_embedding;
 CREATE INDEX idx_cache_entries_embedding
 ON semantic_cache.cache_entries
@@ -113,19 +131,25 @@ WITH (m = 16, ef_construction = 64);
 
 ### Index Comparison
 
+The following table compares the performance characteristics of IVFFlat
+and HNSW indexes:
+
 | Feature | IVFFlat | HNSW |
 |---------|---------|------|
-| Speed | ⚡⚡⚡ | ⚡⚡ |
-| Accuracy | ✓✓ | ✓✓✓ |
-| Build Time | ⚡⚡⚡ | ⚡ |
-| Memory | 💾 | 💾💾 |
+| Speed | Very Fast | Fast |
+| Accuracy | Good | Excellent |
+| Build Time | Very Fast | Slow |
+| Memory | Moderate | High |
 | Updates | Fast | Slower |
 
 ## Cache Configuration
 
-The extension stores configuration in the `semantic_cache.cache_config` table.
+The extension stores configuration details in the 
+`semantic_cache.cache_config` table.
 
 ### View Current Configuration
+
+Use the following command to view the current configuration:
 
 ```sql
 SELECT * FROM semantic_cache.cache_config ORDER BY key;
@@ -133,91 +157,107 @@ SELECT * FROM semantic_cache.cache_config ORDER BY key;
 
 ### Key Configuration Parameters
 
+Use the following configuration parameters to control cache settings.
+
 #### max_cache_size_mb
 
-Maximum cache size in megabytes before auto-eviction triggers.
+Use `max_cache_size_mb` to specify the maximum cache size in megabytes
+before auto-eviction triggers.
+
+In the following example, the maximum cache size is set to 2GB:
 
 ```sql
--- Set to 2GB
 UPDATE semantic_cache.cache_config
 SET value = '2000'
 WHERE key = 'max_cache_size_mb';
-
--- Or default: 1000 MB
 ```
 
 #### default_ttl_seconds
 
-Default time-to-live for cached entries (can be overridden per query).
+Use `default_ttl_seconds` to specify the default time-to-live for
+cached entries, which can be overridden per query.
+
+In the following example, the default TTL is set to 2 hours:
 
 ```sql
--- Set default to 2 hours
 UPDATE semantic_cache.cache_config
 SET value = '7200'
 WHERE key = 'default_ttl_seconds';
-
--- Default: 3600 (1 hour)
 ```
 
 #### eviction_policy
 
-Automatic eviction strategy when cache size limit is reached.
+Use eviction_policy to specify the automatic eviction strategy when
+the cache size limit is reached.
+
+In the following example, the eviction policy is set to LRU:
 
 ```sql
--- Options: 'lru', 'lfu', 'ttl'
 UPDATE semantic_cache.cache_config
 SET value = 'lru'
 WHERE key = 'eviction_policy';
 ```
 
-**Eviction Policies:**
+Eviction policies include the following options:
 
-- **lru**: Least Recently Used - evicts oldest accessed entries
-- **lfu**: Least Frequently Used - evicts least accessed entries
-- **ttl**: Time To Live - evicts entries closest to expiration
+- The lru policy evicts the least recently used entries.
+- The lfu policy evicts the least frequently used entries.
+- The ttl policy evicts entries closest to expiration.
 
 #### similarity_threshold
 
-Default similarity threshold for cache hits (0.0 - 1.0).
+Use similarity_threshold to specify the default similarity threshold
+for cache hits, with values from 0.0 to 1.0.
+
+In the following example, the similarity threshold is set to 0.98 for
+more strict matching:
 
 ```sql
--- More strict matching (fewer hits, more accurate)
 UPDATE semantic_cache.cache_config
 SET value = '0.98'
 WHERE key = 'similarity_threshold';
+```
 
--- More lenient matching (more hits, less accurate)
+In the following example, the similarity threshold is set to 0.90 for
+more lenient matching:
+
+```sql
 UPDATE semantic_cache.cache_config
 SET value = '0.90'
 WHERE key = 'similarity_threshold';
-
--- Default: 0.95 (recommended)
 ```
 
 ## Production Configurations
 
+The following sections detail configuration settings useful in a
+production environment.
+
 ### High-Throughput Configuration
 
-For applications with thousands of queries per second:
+Use the following configuration options for applications with thousands of
+queries per second.
+
+In the following example, the cache is configured for high throughput
+with IVFFlat index, large cache size, LRU eviction, and short TTL:
 
 ```sql
--- Use IVFFlat with optimized lists
 SELECT semantic_cache.set_index_type('ivfflat');
 SELECT semantic_cache.rebuild_index();
 
--- Increase cache size
-UPDATE semantic_cache.cache_config SET value = '5000' WHERE key = 'max_cache_size_mb';
+UPDATE semantic_cache.cache_config SET value = '5000'
+WHERE key = 'max_cache_size_mb';
 
--- Use LRU for fast eviction
-UPDATE semantic_cache.cache_config SET value = 'lru' WHERE key = 'eviction_policy';
+UPDATE semantic_cache.cache_config SET value = 'lru'
+WHERE key = 'eviction_policy';
 
--- Shorter TTL to keep cache fresh
-UPDATE semantic_cache.cache_config SET value = '1800' WHERE key = 'default_ttl_seconds';
+UPDATE semantic_cache.cache_config SET value = '1800'
+WHERE key = 'default_ttl_seconds';
 ```
 
-PostgreSQL settings:
+In the following example, PostgreSQL is configured with settings
+optimized for high throughput:
+
 ```ini
-# postgresql.conf
 shared_buffers = 8GB
 effective_cache_size = 24GB
 work_mem = 512MB
@@ -226,61 +266,75 @@ maintenance_work_mem = 2GB
 
 ### High-Accuracy Configuration
 
-For applications requiring maximum precision:
+Use the following configuration for applications requiring maximum
+precision.
+
+In the following example, the cache is configured for high accuracy
+with HNSW index, strict similarity threshold, and longer TTL:
 
 ```sql
--- Use HNSW for best recall
 SELECT semantic_cache.set_index_type('hnsw');
 SELECT semantic_cache.rebuild_index();
 
--- Strict similarity threshold
-UPDATE semantic_cache.cache_config SET value = '0.98' WHERE key = 'similarity_threshold';
+UPDATE semantic_cache.cache_config SET value = '0.98'
+WHERE key = 'similarity_threshold';
 
--- Longer TTL for stable results
-UPDATE semantic_cache.cache_config SET value = '14400' WHERE key = 'default_ttl_seconds';
+UPDATE semantic_cache.cache_config SET value = '14400'
+WHERE key = 'default_ttl_seconds';
 ```
 
 ### LLM/AI Application Configuration
 
-Optimized for caching expensive AI API calls:
+Use the following configuration settings to optimize caching for
+expensive AI API calls.
+
+In the following example, the cache is configured for LLM
+applications with OpenAI ada-002 dimensions, balanced threshold, long
+TTL, and large cache size:
 
 ```sql
--- OpenAI ada-002 dimensions
 SELECT semantic_cache.set_vector_dimension(1536);
 SELECT semantic_cache.rebuild_index();
 
--- Balance between accuracy and coverage
-UPDATE semantic_cache.cache_config SET value = '0.93' WHERE key = 'similarity_threshold';
+UPDATE semantic_cache.cache_config SET value = '0.93'
+WHERE key = 'similarity_threshold';
 
--- Cache longer (AI responses stable)
-UPDATE semantic_cache.cache_config SET value = '7200' WHERE key = 'default_ttl_seconds';
+UPDATE semantic_cache.cache_config SET value = '7200'
+WHERE key = 'default_ttl_seconds';
 
--- Large cache for many queries
-UPDATE semantic_cache.cache_config SET value = '10000' WHERE key = 'max_cache_size_mb';
+UPDATE semantic_cache.cache_config SET value = '10000'
+WHERE key = 'max_cache_size_mb';
 ```
 
 ### Analytics Query Configuration
 
-For caching expensive analytical queries:
+The following configuration is well-suited for caching expensive
+analytical queries.
+
+In the following example, the cache is configured for analytics with
+standard dimensions, moderate threshold, short TTL, and LFU policy:
 
 ```sql
--- Use standard dimensions
 SELECT semantic_cache.set_vector_dimension(768);
 SELECT semantic_cache.rebuild_index();
 
--- Moderate similarity (query variations common)
-UPDATE semantic_cache.cache_config SET value = '0.90' WHERE key = 'similarity_threshold';
+UPDATE semantic_cache.cache_config SET value = '0.90'
+WHERE key = 'similarity_threshold';
 
--- Short TTL (data changes frequently)
-UPDATE semantic_cache.cache_config SET value = '900' WHERE key = 'default_ttl_seconds';
+UPDATE semantic_cache.cache_config SET value = '900'
+WHERE key = 'default_ttl_seconds';
 
--- LFU policy (popular queries cached longer)
-UPDATE semantic_cache.cache_config SET value = 'lfu' WHERE key = 'eviction_policy';
+UPDATE semantic_cache.cache_config SET value = 'lfu'
+WHERE key = 'eviction_policy';
 ```
 
 ## Monitoring Configuration Impact
 
+You can use system queries to optimize cache usage.
+
 ### Check Index Performance
+
+Use the following query to view index usage statistics:
 
 ```sql
 -- View index usage
@@ -297,81 +351,91 @@ WHERE schemaname = 'semantic_cache';
 
 ### Measure Lookup Times
 
-```sql
--- Enable timing
-\timing on
+Use the following commands to measure lookup performance.
 
--- Test lookup
+In the following example, the `\timing` command enables timing before
+testing lookup performance:
+
+```sql
+\timing on
 SELECT * FROM semantic_cache.get_cached_result(
     '[0.1, 0.2, ...]'::text,
     0.95
 );
 ```
 
-Target: < 5ms for most queries
+Target performance is less than 5ms for most queries.
 
 ### Cache Hit Rate
 
+Use the following query to monitor cache hit rate.
+
+In the following example, the `cache_stats` function monitors the
+cache hit rate:
+
 ```sql
--- Monitor hit rate with current config
 SELECT * FROM semantic_cache.cache_stats();
 ```
 
-Target: > 70% for effective caching
-
-## Configuration Best Practices
-
-!!! tip "Start Simple"
-    Begin with defaults (1536 dimensions, IVFFlat, 0.95 threshold) and adjust based on monitoring.
-
-!!! warning "Test Before Production"
-    Always test configuration changes in development before applying to production.
+Target hit rate is greater than 70% for effective caching.
 
 ### Tuning Checklist
 
-- [ ] Choose dimension matching your embedding model
-- [ ] Select index type based on workload (IVFFlat for most cases)
-- [ ] Set similarity threshold based on accuracy requirements
-- [ ] Configure cache size based on available memory
-- [ ] Choose eviction policy matching access patterns
-- [ ] Set TTL based on data freshness requirements
-- [ ] Monitor hit rate and adjust as needed
+Follow this checklist when tuning your cache configuration:
+
+- Choose a dimension matching your embedding model.
+- Select an index type based on workload, using IVFFlat for most
+  cases.
+- Set a similarity threshold based on accuracy requirements.
+- Configure cache size based on available memory.
+- Choose an eviction policy matching access patterns.
+- Set TTL based on data freshness requirements.
+- Monitor hit rate and adjust as needed.
 
 ### Common Mistakes
 
-❌ **Using wrong dimensions**
-```sql
--- Extension configured for 1536, but sending 768-dim vectors
--- Result: Error or poor performance
-```
+The following common mistakes have simple remediations.
 
-✓ **Match model dimensions**
+#### Using Wrong Dimensions
+
+If the extension is configured for 1536 dimensions but you send 768
+dimension vectors, the result is an error or poor performance.
+
+You should use matching model dimensions.
+
+In the following example, the vector dimension is set to match the
+model:
+
 ```sql
-SELECT semantic_cache.set_vector_dimension(768);  -- Match your model
+SELECT semantic_cache.set_vector_dimension(768);
 SELECT semantic_cache.rebuild_index();
 ```
 
-❌ **Too strict threshold**
+#### Too Strict Threshold
+
+If the similarity threshold is set too high at 0.99, the result is a
+very low hit rate.
+
+Use a more balanced threshold.
+
+In the following example, the threshold is set to 0.93 to allow
+reasonable variation:
+
 ```sql
-UPDATE semantic_cache.cache_config SET value = '0.99' WHERE key = 'similarity_threshold';
--- Result: Very low hit rate
+UPDATE semantic_cache.cache_config SET value = '0.93'
+WHERE key = 'similarity_threshold';
 ```
 
-✓ **Balanced threshold**
-```sql
-UPDATE semantic_cache.cache_config SET value = '0.93' WHERE key = 'similarity_threshold';
--- Allows reasonable variation
-```
+#### Forgetting To Rebuild
 
-❌ **Forgetting to rebuild**
+If you set the vector dimension but forget to rebuild the index, the
+old index is still in use. You should rebuild your cache to use the new index.
+
+In the following example, the index is rebuilt after changing the
+dimension:
+
 ```sql
 SELECT semantic_cache.set_vector_dimension(768);
--- Forgot: SELECT semantic_cache.rebuild_index();
--- Result: Old index still in use!
+SELECT semantic_cache.rebuild_index();
 ```
 
-## Next Steps
-
-- [Functions Reference](functions/index.md) - Learn about all configuration functions
-- [Monitoring](monitoring.md) - Track performance and tune configuration
-- [Use Cases](use_cases.md) - See configuration examples in practice

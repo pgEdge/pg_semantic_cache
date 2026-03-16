@@ -1,18 +1,18 @@
 # Installation
 
-This guide covers installing pg_semantic_cache from source on various platforms.
+You can install pg_semantic_cache from source on various platforms. Before 
+installing pg_semantic_cache, you must install:
 
-## Prerequisites
+- PostgreSQL: Version 14, 15, 16, 17, or 18
+- pgvector: Must be installed before pg_semantic_cache
+- C Compiler: gcc or clang
+- make: GNU Make or compatible
+- PostgreSQL Development Headers: Required for building extensions
 
-### Required
+## Platform-Specific Packages
 
-- **PostgreSQL**: Version 14, 15, 16, 17, or 18
-- **pgvector**: Must be installed before pg_semantic_cache
-- **C Compiler**: gcc or clang
-- **make**: GNU Make or compatible
-- **PostgreSQL Development Headers**: Required for building extensions
-
-### Platform-Specific Packages
+Use the following platform-specific commands to ensure that your host
+is prepared for pg_semantic_cache:
 
 === "Debian/Ubuntu"
     ```bash
@@ -63,7 +63,22 @@ This guide covers installing pg_semantic_cache from source on various platforms.
 
 ## Building from Source
 
-### Standard Installation
+You can use the following command to check your build environment and
+configuration settings before compiling.
+
+```bash
+make info
+```
+
+Output includes the following information:
+
+- The PostgreSQL version and paths.
+- The compiler and flags.
+- The installation directories.
+- The extension version.
+
+After configuring your build environment, build pg_semantic_cache using the
+standard PostgreSQL extension build commands:
 
 ```bash
 # Clone the repository
@@ -78,9 +93,15 @@ make
 sudo make install
 ```
 
-### Multi-Version PostgreSQL
+A development build includes verbose output and debugging information; to
+perform a development build, use the following command:
 
-If you have multiple PostgreSQL versions installed:
+```bash
+make dev-install
+```
+
+If you have multiple PostgreSQL versions installed, you can use PG_CONFIG to 
+target specific PostgreSQL versions when multiple versions are installed.
 
 ```bash
 # Specify pg_config explicitly
@@ -92,29 +113,12 @@ for PG in 14 15 16 17 18; do
 done
 ```
 
-### Development Build
+### Verifying the Installation
 
-For development with verbose output:
+After the installation completes, verify that all extension files are in
+place.
 
-```bash
-make dev-install
-```
-
-### View Build Configuration
-
-```bash
-make info
-```
-
-Output includes:
-- PostgreSQL version and paths
-- Compiler and flags
-- Installation directories
-- Extension version
-
-## Verifying Installation
-
-### Check Extension Files
+Check for the extension files:
 
 ```bash
 # Verify shared library is installed
@@ -127,43 +131,18 @@ ls -lh $(pg_config --sharedir)/extension/pg_semantic_cache.control
 ls -lh $(pg_config --sharedir)/extension/pg_semantic_cache--*.sql
 ```
 
-### Check pgvector Installation
+Use the following command to confirm that pgvector is installed:
 
 ```bash
 # pgvector must be installed first
 ls -lh $(pg_config --pkglibdir)/vector.so
 ```
 
-## PostgreSQL Configuration
-
-### Update postgresql.conf
-
-pg_semantic_cache works out of the box without special configuration, but for optimal performance with large caches:
-
-```ini
-# Recommended for production with large caches
-shared_buffers = 4GB                    # 25% of RAM
-effective_cache_size = 12GB             # 75% of RAM
-work_mem = 256MB                        # For vector operations
-maintenance_work_mem = 1GB              # For index creation
-
-# Enable query timing (optional, for monitoring)
-track_io_timing = on
-```
-
-Restart PostgreSQL after configuration changes:
-
-```bash
-# Systemd
-sudo systemctl restart postgresql
-
-# Or using pg_ctl
-pg_ctl restart -D /var/lib/postgresql/data
-```
-
 ## Creating the Extension
 
-### In psql
+Create the extension in your PostgreSQL database to begin using
+semantic caching. Open the psql command line, and run the following
+commands:
 
 ```sql
 -- Connect to your database
@@ -176,7 +155,9 @@ CREATE EXTENSION IF NOT EXISTS vector;
 CREATE EXTENSION IF NOT EXISTS pg_semantic_cache;
 
 -- Verify installation
-SELECT extname, extversion FROM pg_extension WHERE extname IN ('vector', 'pg_semantic_cache');
+SELECT extname, extversion
+FROM pg_extension
+WHERE extname IN ('vector', 'pg_semantic_cache');
 ```
 
 Expected output:
@@ -187,7 +168,10 @@ Expected output:
  pg_semantic_cache  | 0.1.0-beta4
 ```
 
-### Verify Schema Creation
+### Verifying Schema Creation
+
+Check that the semantic_cache schema and tables were created
+successfully.
 
 ```sql
 -- Check that schema and tables were created
@@ -197,76 +181,40 @@ Expected output:
 SELECT * FROM semantic_cache.cache_health;
 ```
 
-## Troubleshooting Installation
+## Optimizing the PostgreSQL Configuration
 
-### pg_config not found
+You can optimize PostgreSQL settings for better performance with semantic
+caching by updating the `postgresql.conf` file.
+
+The pg_semantic_cache extension works out of the box without special
+configuration, but for optimal performance with large caches use the
+following settings:
+
+```ini
+# Recommended for production with large caches
+shared_buffers = 4GB                    # 25% of RAM
+effective_cache_size = 12GB             # 75% of RAM
+work_mem = 256MB                        # For vector operations
+maintenance_work_mem = 1GB              # For index creation
+
+# Enable query timing (optional, for monitoring)
+track_io_timing = on
+```
+
+Restart PostgreSQL after making configuration changes:
 
 ```bash
-# Find PostgreSQL installation
-sudo find / -name pg_config 2>/dev/null
+# Systemd
+sudo systemctl restart postgresql
 
-# Add to PATH
-export PATH="/usr/pgsql-17/bin:$PATH"
-
-# Or specify directly
-PG_CONFIG=/path/to/pg_config make install
+# Or using pg_ctl
+pg_ctl restart -D /var/lib/postgresql/data
 ```
 
-### Permission Denied During Installation
+## Testing the Installation
 
-```bash
-# Use sudo for system directories
-sudo make install
-
-# Or install to custom directory (no sudo required)
-make install DESTDIR=/path/to/custom/location
-```
-
-### pgvector Not Found
-
-```sql
--- Error: could not open extension control file
--- Solution: Install pgvector first
-```
-
-```bash
-cd /tmp
-git clone https://github.com/pgvector/pgvector.git
-cd pgvector
-make
-sudo make install
-```
-
-### Extension Already Exists
-
-```sql
--- If you're upgrading, drop the old version first
-DROP EXTENSION IF EXISTS pg_semantic_cache CASCADE;
-
--- Then reinstall
-CREATE EXTENSION pg_semantic_cache;
-```
-
-!!! warning "Data Loss Warning"
-    Dropping the extension will delete all cached data. Use `ALTER EXTENSION UPDATE` for upgrades when available.
-
-### Compilation Errors
-
-```bash
-# Ensure development headers are installed
-# Debian/Ubuntu
-sudo apt-get install postgresql-server-dev-17
-
-# RHEL/Rocky
-sudo yum install postgresql17-devel
-
-# Verify pg_config works
-pg_config --includedir-server
-```
-
-## Testing Installation
-
-Run the included test suite:
+Validate your installation by running the test suite or manual tests. You can
+use the following command to run the included test suite:
 
 ```bash
 # Requires a running PostgreSQL instance
@@ -285,26 +233,23 @@ Or run manual tests:
 
 ## Uninstalling
 
-### Remove Extension from Database
+You can remove pg_semantic_cache from your database and system when it
+is no longer needed. Use the following command:
 
 ```sql
 DROP EXTENSION IF EXISTS pg_semantic_cache CASCADE;
 ```
 
-### Remove Files from System
+Then, clean up extension files from PostgreSQL directories:
 
 ```bash
 cd pg_semantic_cache
 sudo make uninstall
 ```
 
-This removes:
-- Shared library (`.so` file)
-- Control file
-- SQL installation files
+This removes the following files:
 
-## Next Steps
+- The shared library file with the .so extension.
+- The control file.
+- The SQL installation files.
 
-- [Configuration](configuration.md) - Configure vector dimensions and index types
-- [Functions Reference](functions/index.md) - Learn about available functions
-- [Use Cases](use_cases.md) - See practical examples

@@ -1,16 +1,27 @@
 # Use Cases
 
-Practical examples and integration patterns for pg_semantic_cache in real-world applications.
+This document provides practical examples and integration patterns for the
+pg_semantic_cache extension in real-world applications.
 
 ## LLM and AI Applications
 
+The following sections demonstrate how to use the pg_semantic_cache extension
+to optimize costs and performance in LLM and AI-powered applications.
+
 ### RAG (Retrieval Augmented Generation) Caching
 
-Cache expensive LLM API calls based on semantic similarity of user questions.
+The RAG caching pattern addresses the challenge of expensive LLM API
+calls by caching responses based on semantic similarity of user
+questions.
 
-**Problem**: LLM API calls cost $0.02-$0.05 per request. Users ask similar questions differently.
+LLM API calls typically cost between $0.02 and $0.05 per request, and
+users often ask similar questions using different wording. The
+pg_semantic_cache extension solves this problem by caching LLM
+responses with semantic matching.
 
-**Solution**: Cache LLM responses with semantic matching.
+In the following example, the `SemanticLLMCache` class uses the
+OpenAI API to generate embeddings and cache LLM responses based on
+semantic similarity.
 
 ```python
 import openai
@@ -45,7 +56,8 @@ class SemanticLLMCache:
 
         result = cur.fetchone()
         if result:  # Cache hit
-            print(f"✓ Cache HIT (similarity: {result[2]:.4f}, age: {result[3]}s)")
+            print(f"✓ Cache HIT (similarity: {result[2]:.4f}, "
+                  f"age: {result[3]}s)")
             return json.loads(result[1])
 
         # Cache miss - call actual LLM
@@ -82,13 +94,23 @@ cache = SemanticLLMCache("dbname=mydb user=postgres")
 
 # These similar questions will hit the cache
 cache.ask_llm_cached("What was our Q4 revenue?")
-cache.ask_llm_cached("Show me Q4 revenue")  # Cache hit!
-cache.ask_llm_cached("Q4 revenue please")   # Cache hit!
+cache.ask_llm_cached("Show me Q4 revenue")     # Cache hit!
+cache.ask_llm_cached("Q4 revenue please")      # Cache hit!
 ```
 
-**Savings**: With 80% hit rate on 10K daily queries: **$140/day** or **$51,100/year**
+An organization processing 10,000 daily queries with an 80% cache hit
+rate can save approximately $140 per day or $51,100 per year using this
+approach.
 
 ### Chatbot Response Caching
+
+The chatbot response caching pattern optimizes conversational AI
+applications by storing and reusing responses for semantically
+similar user messages.
+
+In the following example, the `ChatbotCache` class uses TypeScript to
+implement a caching layer for chatbot responses with configurable
+similarity thresholds.
 
 ```typescript
 import { OpenAI } from 'openai';
@@ -123,7 +145,7 @@ class ChatbotCache {
 
     // Check cache
     const cacheResult = await this.pool.query(
-      'SELECT * FROM semantic_cache.get_cached_result($1, 0.92)',
+      `SELECT * FROM semantic_cache.get_cached_result($1, 0.92)`,
       [embeddingStr]
     );
 
@@ -148,7 +170,8 @@ class ChatbotCache {
 
     // Cache response
     await this.pool.query(
-      `SELECT semantic_cache.cache_query($1, $2, $3::jsonb, 3600, ARRAY['chatbot'])`,
+      `SELECT semantic_cache.cache_query(
+         $1, $2, $3::jsonb, 3600, ARRAY['chatbot'])`,
       [userMessage, embeddingStr, JSON.stringify({ answer })]
     );
 
@@ -159,9 +182,18 @@ class ChatbotCache {
 
 ## Analytics and Reporting
 
+This section demonstrates how to use the pg_semantic_cache extension
+to improve performance of analytical queries and reporting workloads.
+
 ### Dashboard Query Caching
 
-Cache expensive analytical queries that power dashboards.
+The dashboard query caching pattern reduces latency for expensive
+analytical queries that power business intelligence dashboards and
+reporting tools.
+
+In the following example, the `app.get_sales_analytics` function
+uses a deterministic embedding to cache analytics results for a
+configurable TTL period.
 
 ```sql
 -- Application caching wrapper for analytics
@@ -180,7 +212,8 @@ BEGIN
     -- (In production, use actual embedding service)
     query_embedding := (
         SELECT array_agg(
-            (hashtext((query_text || params::text)::text) + i)::float / 2147483647
+            (hashtext((query_text || params::text)::text) + i)::float
+            / 2147483647
         )::text
         FROM generate_series(1, 1536) i
     );
@@ -234,16 +267,25 @@ $$ LANGUAGE plpgsql;
 -- Usage
 SELECT app.get_sales_analytics(
     'Total sales and order metrics',
-    '{"period": "Q4", "start_date": "2024-10-01", "end_date": "2024-12-31"}'::jsonb
+    '{"period": "Q4", "start_date": "2024-10-01",
+      "end_date": "2024-12-31"}'::jsonb
 );
 ```
 
 ### Time-Series Report Caching
 
+The time-series report caching pattern optimizes recurring reports by
+adjusting cache TTL based on the temporal granularity of the data
+being reported.
+
+In the following example, the `app.cached_time_series_report`
+function uses different TTL values for daily, weekly, and monthly
+reports.
+
 ```sql
 -- Cache daily/weekly/monthly reports
 CREATE OR REPLACE FUNCTION app.cached_time_series_report(
-    report_type TEXT,  -- 'daily', 'weekly', 'monthly'
+    report_type TEXT,   -- 'daily', 'weekly', 'monthly'
     metric_name TEXT
 ) RETURNS TABLE(period DATE, value NUMERIC) AS $$
 DECLARE
@@ -265,12 +307,15 @@ BEGIN
     END;
 
     -- Try cache
-    SELECT * INTO cached FROM semantic_cache.get_cached_result(query_emb, 0.95);
+    SELECT * INTO cached
+    FROM semantic_cache.get_cached_result(query_emb, 0.95);
 
     IF cached.found IS NOT NULL THEN
         -- Return cached data as table
         RETURN QUERY
-        SELECT (item->>'period')::DATE, (item->>'value')::NUMERIC
+        SELECT
+            (item->>'period')::DATE,
+            (item->>'value')::NUMERIC
         FROM jsonb_array_elements(cached.result_data->'data') item;
         RETURN;
     END IF;
@@ -279,7 +324,7 @@ BEGIN
     PERFORM semantic_cache.cache_query(
         format('Report: %s - %s', report_type, metric_name),
         query_emb,
-        '{"data": []}'::jsonb,  -- Your actual query results
+        '{"data": []}'::jsonb,   -- Your actual query results
         ttl_seconds,
         ARRAY['reports', report_type]
     );
@@ -291,9 +336,19 @@ $$ LANGUAGE plpgsql;
 
 ## External API Results
 
+This section demonstrates how to use the pg_semantic_cache extension
+to reduce costs and latency when integrating with third-party
+external APIs.
+
 ### Third-Party API Response Caching
 
-Cache responses from expensive external APIs (weather, geocoding, stock prices, etc.).
+The external API caching pattern stores responses from expensive
+third-party APIs such as weather services, geocoding providers, and
+stock price feeds.
+
+In the following example, the `APICache` class uses the
+sentence-transformers library to generate embeddings and cache API
+responses with semantic matching.
 
 ```python
 import requests
@@ -310,7 +365,8 @@ class APICache:
         Fetch from API with semantic caching
 
         Args:
-            query: Natural language query (e.g., "weather in San Francisco")
+            query: Natural language query
+                   (e.g., "weather in San Francisco")
             api_call_fn: Function to call API
             ttl: Cache TTL in seconds
         """
@@ -338,22 +394,28 @@ class APICache:
         import json
         cur.execute("""
             SELECT semantic_cache.cache_query(
-                %s, %s, %s::jsonb, %s, ARRAY['api', 'external']
+                %s, %s, %s::jsonb, %s,
+                ARRAY['api', 'external']
             )
         """, (query, embedding_str, json.dumps(api_response), ttl))
         self.conn.commit()
 
         return api_response
+```
 
-# Usage examples
+The following examples demonstrate how to use the `APICache` class
+with different external APIs using appropriate TTL values for each
+use case.
 
+```python
 # Weather API
 def get_weather(city):
     cache = APICache("dbname=mydb")
     return cache.fetch_with_cache(
         f"weather in {city}",
-        lambda: requests.get(f"https://api.weather.com/{city}").json(),
-        ttl=1800  # 30 minutes
+        lambda: requests.get(
+            f"https://api.weather.com/{city}").json(),
+        ttl=1800   # 30 minutes
     )
 
 # Geocoding API
@@ -361,7 +423,8 @@ def geocode(address):
     cache = APICache("dbname=mydb")
     return cache.fetch_with_cache(
         f"geocode {address}",
-        lambda: requests.get(f"https://api.geocode.com?q={address}").json(),
+        lambda: requests.get(
+            f"https://api.geocode.com?q={address}").json(),
         ttl=86400  # 24 hours (addresses don't change)
     )
 
@@ -370,21 +433,32 @@ def get_stock_price(symbol):
     cache = APICache("dbname=mydb")
     return cache.fetch_with_cache(
         f"stock price {symbol}",
-        lambda: requests.get(f"https://api.stocks.com/{symbol}").json(),
-        ttl=60  # 1 minute (real-time data)
+        lambda: requests.get(
+            f"https://api.stocks.com/{symbol}").json(),
+        ttl=60     # 1 minute (real-time data)
     )
 ```
 
 ## Database Query Optimization
 
+This section demonstrates how to use the pg_semantic_cache extension
+to optimize expensive database queries and reduce computational
+overhead.
+
 ### Expensive Join Caching
 
-Cache results from expensive multi-table joins.
+The expensive join caching pattern stores results from complex
+multi-table joins to avoid repeated execution of resource-intensive
+database operations.
+
+In the following example, the `app.get_customer_summary` function
+caches the results of a complex customer data aggregation query with
+multiple joins.
 
 ```sql
 -- Wrap expensive queries with semantic caching
 CREATE OR REPLACE FUNCTION app.get_customer_summary(
-    customer_identifier TEXT  -- email, name, or ID
+    customer_identifier TEXT   -- email, name, or ID
 ) RETURNS JSONB AS $$
 DECLARE
     query_emb TEXT;
@@ -393,13 +467,18 @@ DECLARE
 BEGIN
     -- Simple embedding generation (replace with actual service)
     query_emb := (
-        SELECT array_agg((hashtext(customer_identifier || i::text)::float / 2147483647)::float4)::text
+        SELECT array_agg(
+            (hashtext(customer_identifier || i::text)::float
+             / 2147483647)::float4
+        )::text
         FROM generate_series(1, 1536) i
     );
 
     -- Check cache
     SELECT * INTO cached
-    FROM semantic_cache.get_cached_result(query_emb, 0.98, 300);
+    FROM semantic_cache.get_cached_result(
+        query_emb, 0.98, 300
+    );
 
     IF cached.found IS NOT NULL THEN
         RETURN cached.result_data;
@@ -444,19 +523,38 @@ $$ LANGUAGE plpgsql;
 
 -- Usage - these similar queries hit cache:
 SELECT app.get_customer_summary('[email protected]');
-SELECT app.get_customer_summary('john@example.com');     -- Exact match
-SELECT app.get_customer_summary('John Doe');              -- By name
-SELECT app.get_customer_summary('john');                  -- Partial match
+SELECT app.get_customer_summary('john@example.com');
+    -- Exact match
+SELECT app.get_customer_summary('John Doe');
+    -- By name
+SELECT app.get_customer_summary('john');
+    -- Partial match
 ```
 
 ## Scheduled Maintenance
 
+This section demonstrates how to implement automated maintenance
+routines for the pg_semantic_cache extension to ensure optimal
+performance and storage use.
+
 ### Automatic Cache Cleanup
+
+The automatic cache cleanup pattern uses scheduled maintenance
+functions to evict expired entries and optimize cache storage on a
+regular basis.
+
+In the following example, the `semantic_cache.scheduled_maintenance`
+function performs multiple maintenance operations and returns timing
+information.
 
 ```sql
 -- Create maintenance function
 CREATE OR REPLACE FUNCTION semantic_cache.scheduled_maintenance()
-RETURNS TABLE(operation TEXT, affected_rows BIGINT, duration INTERVAL) AS $$
+RETURNS TABLE(
+    operation TEXT,
+    affected_rows BIGINT,
+    duration INTERVAL
+) AS $$
 DECLARE
     start_time TIMESTAMPTZ;
     evicted BIGINT;
@@ -502,7 +600,13 @@ SELECT * FROM semantic_cache.scheduled_maintenance();
 
 ### Cache Warming
 
-Pre-populate cache with common queries.
+The cache warming pattern pre-populates the cache with common queries
+to improve application performance during startup or after cache
+invalidation.
+
+In the following example, the `app.warm_cache` function pre-caches
+frequently accessed dashboard queries to reduce initial page load
+times.
 
 ```sql
 -- Warm cache with popular queries
@@ -514,8 +618,10 @@ BEGIN
     -- Example: Pre-cache common dashboard queries
     PERFORM semantic_cache.cache_query(
         'Total sales this month',
-        (SELECT array_agg(random()::float4)::text FROM generate_series(1, 1536)),
-        (SELECT jsonb_build_object('total', SUM(amount)) FROM orders
+        (SELECT array_agg(random()::float4)::text
+         FROM generate_series(1, 1536)),
+        (SELECT jsonb_build_object('total', SUM(amount))
+         FROM orders
          WHERE created_at >= DATE_TRUNC('month', NOW())),
         3600,
         ARRAY['dashboard', 'warmed']
@@ -534,9 +640,19 @@ SELECT app.warm_cache();
 
 ## Multi-Language Support
 
+This section demonstrates how to use the pg_semantic_cache extension
+to support caching across multiple languages using multilingual
+embedding models.
+
 ### Caching Across Languages
 
-Cache queries regardless of language using embeddings.
+The multilingual caching pattern enables cache hits across different
+languages by using multilingual embedding models that map
+semantically similar queries.
+
+In the following example, the `MultilingualCache` class uses the
+multilingual mpnet model to cache queries across English, Spanish,
+French, and Portuguese.
 
 ```python
 from sentence_transformers import SentenceTransformer
@@ -546,7 +662,9 @@ class MultilingualCache:
     def __init__(self, db_conn_string):
         self.conn = psycopg2.connect(db_conn_string)
         # Use multilingual model
-        self.encoder = SentenceTransformer('paraphrase-multilingual-mpnet-base-v2')
+        self.encoder = SentenceTransformer(
+            'paraphrase-multilingual-mpnet-base-v2'
+        )
 
     def cached_query(self, query_text, language):
         """Cache works across languages!"""
@@ -556,7 +674,8 @@ class MultilingualCache:
         # Check cache (works for all languages)
         cur = self.conn.cursor()
         cur.execute("""
-            SELECT * FROM semantic_cache.get_cached_result(%s, 0.90)
+            SELECT *
+            FROM semantic_cache.get_cached_result(%s, 0.90)
         """, (embedding_str,))
 
         result = cur.fetchone()
@@ -566,18 +685,29 @@ class MultilingualCache:
         # Execute query and cache
         # ... your query logic ...
 
-# These queries in different languages can hit the same cache entry!
+# These queries in different languages can hit the same cache
+# entry!
 cache = MultilingualCache("dbname=mydb")
 
 cache.cached_query("What is the total revenue?", "en")
-cache.cached_query("¿Cuál es el ingreso total?", "es")      # Cache hit!
-cache.cached_query("Quel est le revenu total?", "fr")       # Cache hit!
-cache.cached_query("Qual é a receita total?", "pt")         # Cache hit!
+cache.cached_query("¿Cuál es el ingreso total?", "es")
+    # Cache hit!
+cache.cached_query("Quel est le revenu total?", "fr")
+    # Cache hit!
+cache.cached_query("Qual é a receita total?", "pt")
+    # Cache hit!
 ```
 
 ## Next Steps
 
-- [Functions Reference](functions/index.md) - Learn all available functions
-- [Monitoring](monitoring.md) - Track cache performance
-- [Configuration](configuration.md) - Optimize for your use case
-- [FAQ](FAQ.md) - Common questions and solutions
+The following resources provide additional information about the
+pg_semantic_cache extension:
+
+- The [Functions Reference](functions/index.md) document describes all
+  available functions.
+- The [Monitoring](monitoring.md) document explains how to track cache
+  performance.
+- The [Configuration](configuration.md) document provides optimization
+  guidance for your use case.
+- The [FAQ](FAQ.md) document answers common questions and provides
+  solutions.
