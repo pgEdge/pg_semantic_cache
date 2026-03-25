@@ -1,0 +1,52 @@
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install dependencies and setup pgedge repository
+RUN apt-get update && \
+    apt-get install -y sudo vim wget curl lsb-release gnupg2 build-essential git ca-certificates && \
+    curl -sSL https://apt.pgedge.com/repodeb/pgedge-release_latest_all.deb -o /tmp/pgedge-release.deb && \
+    dpkg -i /tmp/pgedge-release.deb && \
+    rm -f /tmp/pgedge-release.deb && \
+    apt-get update
+
+# Install PostgreSQL 18 and pgvector from pgedge
+RUN apt-get install -y \
+    pgedge-postgresql-18 \
+    pgedge-postgresql-18-pgvector \
+    pgedge-postgresql-server-dev-18
+
+# Set environment variables
+ENV PG_HOME="/usr/lib/postgresql/18"
+ENV PATH="${PG_HOME}/bin:/usr/bin:${PATH}"
+ENV PGDATA="/var/lib/postgresql/data"
+
+# Clone and build pg_semantic_cache extension
+# Patched for 384-dimensional vectors (all-MiniLM-L6-v2)
+WORKDIR /tmp
+RUN git clone https://github.com/pgedge/pg_semantic_cache.git && \
+    cd pg_semantic_cache && \
+    sed -i 's/int32 dimension = 1536;/int32 dimension = 384;/g' pg_semantic_cache.c && \
+    sed -i "s/'vector_dimension', '1536'/'vector_dimension', '384'/g" pg_semantic_cache.c && \
+    make && \
+    make install && \
+    cd / && \
+    rm -rf /tmp/pg_semantic_cache
+
+# Create data directory
+RUN mkdir -p /var/lib/postgresql/data && \
+    chown -R postgres:postgres /var/lib/postgresql
+
+# Copy setup script and entrypoint
+COPY setup.sql /tmp/setup.sql
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chown postgres:postgres /tmp/setup.sql && \
+    chmod +x /usr/local/bin/docker-entrypoint.sh && \
+    chown postgres:postgres /usr/local/bin/docker-entrypoint.sh
+
+EXPOSE 5432
+
+USER postgres
+WORKDIR /var/lib/postgresql
+
+CMD ["/usr/local/bin/docker-entrypoint.sh"]

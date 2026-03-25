@@ -1,0 +1,3 @@
+psycopg2-binary>=2.9
+sentence-transformers>=2.0
+requests>=2.28
