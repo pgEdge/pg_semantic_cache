@@ -110,7 +110,6 @@ nav:
   - Monitoring: monitoring.md
   - Logging: logging.md
   - Performance and Benchmarking: performance.md
-  - Security: security-audit.md
   - Troubleshooting: troubleshooting.md
   - FAQ: FAQ.md
   - Developers: development.md

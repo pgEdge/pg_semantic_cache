@@ -6,7 +6,7 @@ commonly asked questions.
 | Section | Description |
 |---------|-------------|
 | [General Questions](#general-questions) | General semantic caching questions |
-| [Installation & Setup](#installation--setup) | Installation and setup concerns |
+| [Installation & Setup](#installation-setup) | Installation and setup concerns |
 | [Performance](#performance) | Performance characteristics and optimization |
 | [Embeddings](#embeddings) | Embedding models and usage |
 | [Configuration](#configuration) | Configuration options and settings |
