@@ -1,3 +1,10 @@
+<div align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/img/pgedge-labs-dark.svg">
+    <img alt="pgEdge Labs" src="docs/img/pgedge-labs-light.svg" width="320">
+  </picture>
+</div>
+
 # pg_semantic_cache
 
 pg_semantic_cache allows you to leverage vector embeddings to cache and
