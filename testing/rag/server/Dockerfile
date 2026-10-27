@@ -1,7 +1,7 @@
 # Minimal RAG server for testing pg_semantic_cache integration
 # This is a simplified version to demonstrate the integration
 
-FROM golang:1.23-alpine AS builder
+FROM golang:1.26.10-alpine AS builder
 
 WORKDIR /app
 
